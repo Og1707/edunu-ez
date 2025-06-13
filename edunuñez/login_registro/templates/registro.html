@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Usuario</title>
+  <style>
+    body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to top right, #f26522, #fcd8c4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.login-box {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+}
+
+
+.brand-name {
+    font-size: 22px;
+}
+
+.brand-name strong {
+    color: #2a6b4b;
+}
+
+.brand-name span {
+    color: #137d77;
+}
+
+h2 {
+    margin: 0.5rem 0;
+}
+
+form {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+input,
+select {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+
+button {
+    background-color: #e5620b;
+    color: rgb(245, 245, 245);
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #471cd5;
+}
+
+.forgot-password {
+    margin-top: 1rem;
+    font-size: 14px;
+}
+
+.forgot-password a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+/* Etiquetas opcionales si decides usarlas visualmente */
+form label {
+    text-align: left;
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 14px;
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <h2>Registro</h2>
+      <form id="registroForm">
+        <input type="text" id="nombre" placeholder="Nombre" required>
+        <input type="email" id="email" placeholder="Correo electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <select id="roles" required>
+          <option value="">Selecciona un rol</option>
+          <option value="estudiante">Estudiante</option>
+          <option value="profesor">Profesor</option>
+          <option value="administrador">Administrador</option>
+        </select>
+        <button type="submit">Registrarse</button>
+      </form>
+      <p id="mensaje"></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('registroForm');
+    const mensaje = document.getElementById('mensaje');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      fetch('http://127.0.0.1:8000/api/registro/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombre: document.getElementById('nombre').value,
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+          roles: document.getElementById('roles').value
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Error al registrar");
+        return response.json();
+      })
+      .then(data => {
+        mensaje.style.color = "green";
+        mensaje.innerText = "Registro exitoso. Ahora puedes iniciar sesión.";
+        // Redirigir opcionalmente:
+        // window.location.href = "login.html";
+      })
+      .catch(error => {
+        mensaje.style.color = "red";
+        mensaje.innerText = "Error: " + error.message;
+      });
+    });
+  </script>
+</body>
+</html>
+
