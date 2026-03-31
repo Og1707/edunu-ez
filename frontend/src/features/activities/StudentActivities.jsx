@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../utils/axiosConfig';
-import ColorGame from './ColorGame';
+import axios from '../../utils/axiosConfig';
+import ColorGame from '../games/ColorGame';
 import './StudentActivities.css';
 
 const StudentActivities = ({ user }) => {

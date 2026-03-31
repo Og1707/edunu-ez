@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axiosConfig';
+import { register } from '../services/auth.service';
 import './Register.css';
 
 const Register = () => {

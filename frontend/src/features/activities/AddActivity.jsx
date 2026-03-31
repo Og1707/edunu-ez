@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../utils/axiosConfig';
+import axios from '../../utils/axiosConfig';
+import {
+  getCourses,
+  getActivityTypes,
+  getScienceSubjects,
+  createActivity,
+  assignActivityToCourse,
+} from '../../services/activities.service';
+import ScienceQuizGame from '../games/ScienceQuizGame';
+import GameExplorer from '../games/GameExplorer';
 import './AddActivity.css';
-import ScienceQuizGame from './ScienceQuizGame';
-import GameExplorer from './GameExplorer';
 
 const AddActivity = ({ onClose, onActivityAdded }) => {
   const [formData, setFormData] = useState({

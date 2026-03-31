@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from '../utils/axiosConfig';
+import axios from '../../utils/axiosConfig';
 import './ColorGame.css';
 
 const ColorGame = ({ user, actividad, onComplete, onClose }) => {

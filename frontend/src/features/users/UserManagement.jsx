@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../utils/axiosConfig';
+import axios from '../../utils/axiosConfig';
+import {
+  listUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from '../../services/users.service';
 import './UserManagement.css';
 
 const UserManagement = ({ user }) => {

@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../utils/axiosConfig';
+import axios from '../../utils/axiosConfig';
+import {
+  getCourses,
+  getUsers,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  getCourseStudents,
+  addStudentToCourse,
+  removeStudentFromCourse,
+} from '../../services/courses.service';
 import './CourseManagement.css';
 
 const CourseManagement = ({ user }) => {

@@ -1,10 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
-import Register from './components/Register';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import './App.css';
+import Home from './pages/Home.jsx';
+import Register from './pages/Register.jsx';
+import Login from './pages/Login.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import CourseManagement from './features/courses/CourseManagement.jsx';
+import ActivityManagement from './features/activities/ActivityManagement.jsx';
+import UserManagement from './features/users/UserManagement.jsx';
+import GameExplorer from './features/games/GameExplorer.jsx';
 
 function App() {
   return (
@@ -15,6 +18,10 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/courses" element={<CourseManagement />} />
+          <Route path="/activities" element={<ActivityManagement />} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/games" element={<GameExplorer />} />
         </Routes>
       </div>
     </Router>

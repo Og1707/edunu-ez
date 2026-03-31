@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AddActivity from './AddActivity';
-import UserManagement from './UserManagement';
-import CourseManagement from './CourseManagement';
-import ActivityManagement from './ActivityManagement';
-import StudentActivities from './StudentActivities';
 import './Dashboard.css';
+import { useNavigate } from 'react-router-dom';
+import AddActivity from '../features/activities/AddActivity';
+import UserManagement from '../features/users/UserManagement';
+import CourseManagement from '../features/courses/CourseManagement';
+import ActivityManagement from '../features/activities/ActivityManagement';
+import StudentActivities from '../features/activities/StudentActivities';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);

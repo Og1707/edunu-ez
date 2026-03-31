@@ -1,0 +1,13 @@
+:root {
+  --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --background: #f8f9fa;
+  --text-color: #333333;
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --font-size-base: 16px;
+}

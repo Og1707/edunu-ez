@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../utils/axiosConfig';
+import axios from '../../utils/axiosConfig';
+import './GameExplorer.css';
 
 const GameExplorer = ({ onGameSelect, onClose }) => {
   const [categorias, setCategorias] = useState([]);
