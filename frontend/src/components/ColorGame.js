@@ -144,7 +144,7 @@ const ColorGame = ({ user, actividad, onComplete, onClose }) => {
   // Guardar resultados
   const saveResults = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/estudiante/actividades/completar/', {
+      const response = await axios.post('/api/estudiante/actividades/completar/', {
         user_id: user.usuario_id,
         actividad_id: actividad.id,
         puntuacion: Math.round((score / MAX_ROUNDS) * 100),

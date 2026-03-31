@@ -9,6 +9,9 @@ venv/
 ENV/
 env/
 
+# Environment files
+.env
+
 # Django
 db.sqlite3
 *.log

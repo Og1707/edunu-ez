@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 
 const GameExplorer = ({ onGameSelect, onClose }) => {
   const [categorias, setCategorias] = useState([]);
@@ -21,7 +21,7 @@ const GameExplorer = ({ onGameSelect, onClose }) => {
 
   const cargarCategorias = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/juegos/categorias/');
+      const response = await axios.get('/api/juegos/categorias/');
       setCategorias(response.data.categorias);
     } catch (error) {
       console.error('Error al cargar categorías:', error);
@@ -31,7 +31,7 @@ const GameExplorer = ({ onGameSelect, onClose }) => {
   const cargarJuegos = async () => {
     try {
       setLoading(true);
-      let url = 'http://127.0.0.1:8000/api/juegos/listar/';
+      let url = '/api/juegos/listar/';
       const params = new URLSearchParams();
       
       if (categoriaSeleccionada) params.append('categoria_id', categoriaSeleccionada);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import './Register.css';
 
 const Register = () => {
@@ -90,7 +90,7 @@ const Register = () => {
       // Preparar datos para enviar (sin confirmPassword)
       const { confirmPassword, ...dataToSend } = formData;
       
-      const response = await axios.post('http://127.0.0.1:8000/api/registro/', dataToSend, {
+      const response = await axios.post('/api/registro/', dataToSend, {
         headers: {
           'Content-Type': 'application/json',
         }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import './UserManagement.css';
 
 const UserManagement = ({ user }) => {
@@ -26,7 +26,7 @@ const UserManagement = ({ user }) => {
   const cargarUsuarios = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/usuarios/listar/?user_id=${user.usuario_id}`);
+      const response = await axios.get(`/api/usuarios/listar/?user_id=${user.usuario_id}`);
       setUsuarios(response.data);
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
@@ -47,7 +47,7 @@ const UserManagement = ({ user }) => {
         user_id: user.usuario_id
       };
 
-      const response = await axios.post('http://127.0.0.1:8000/api/usuarios/crear/', dataToSend);
+      const response = await axios.post('/api/usuarios/crear/', dataToSend);
       
       setSuccessMessage('Usuario creado exitosamente');
       setShowCreateModal(false);
@@ -85,7 +85,7 @@ const UserManagement = ({ user }) => {
         user_id: user.usuario_id
       };
 
-      const response = await axios.put(`http://127.0.0.1:8000/api/usuarios/${selectedUser.id}/gestionar/`, dataToSend);
+      const response = await axios.put(`/api/usuarios/${selectedUser.id}/gestionar/`, dataToSend);
       
       setSuccessMessage('Usuario actualizado exitosamente');
       setShowEditModal(false);
@@ -113,7 +113,7 @@ const UserManagement = ({ user }) => {
 
     setIsLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/usuarios/${userId}/gestionar/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/usuarios/${userId}/gestionar/?user_id=${user.usuario_id}`);
       
       setSuccessMessage('Usuario eliminado exitosamente');
       cargarUsuarios();

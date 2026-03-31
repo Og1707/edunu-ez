@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import './ScienceQuizGame.css';
 
 const ScienceQuizGame = ({ tema, onGameComplete, onClose }) => {
@@ -87,7 +87,7 @@ const ScienceQuizGame = ({ tema, onGameComplete, onClose }) => {
     try {
       // Obtener contenido de Wikipedia para contexto
       if (tema) {
-        const response = await axios.get(`http://127.0.0.1:8000/api/wikipedia/contenido/?tema=${tema}`);
+        const response = await axios.get(`/api/wikipedia/contenido/?tema=${tema}`);
         setWikiContent(response.data);
       }
 

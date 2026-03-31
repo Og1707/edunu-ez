@@ -31,8 +31,8 @@ const StudentActivities = ({ user }) => {
       console.log('Cargando datos para estudiante:', user.usuario_id);
 
       const [actividadesResponse, estadisticasResponse] = await Promise.all([
-        axios.get(`http://127.0.0.1:8000/api/estudiante/actividades/?user_id=${user.usuario_id}`),
-        axios.get(`http://127.0.0.1:8000/api/estudiante/estadisticas/?user_id=${user.usuario_id}`)
+        axios.get(`/api/estudiante/actividades/?user_id=${user.usuario_id}`),
+        axios.get(`/api/estudiante/estadisticas/?user_id=${user.usuario_id}`)
       ]);
 
       console.log('Datos cargados exitosamente:', {
@@ -80,7 +80,7 @@ const StudentActivities = ({ user }) => {
       setIsLoading(true);
       setErrors({});
       
-      const response = await axios.post('http://127.0.0.1:8000/api/estudiante/actividades/iniciar/', {
+      const response = await axios.post('/api/estudiante/actividades/iniciar/', {
         user_id: user.usuario_id,
         actividad_id: actividadId
       });
@@ -134,7 +134,7 @@ const StudentActivities = ({ user }) => {
       setIsLoading(true);
       setErrors({});
 
-      const response = await axios.post('http://127.0.0.1:8000/api/estudiante/actividades/completar/', {
+      const response = await axios.post('/api/estudiante/actividades/completar/', {
         user_id: user.usuario_id,
         actividad_id: actividadId,
         puntuacion: puntuacion,

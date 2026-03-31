@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-// Configurar axios para enviar credenciales automáticamente
+const baseURL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+
+axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
 
 // Interceptor para añadir headers de autenticación si es necesario

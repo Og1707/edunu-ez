@@ -20,12 +20,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r+5^t_mm#2w7ll55z*vd2b-lfa-j3j#2_x$7@iqs*v42a7f1zg'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-r+5^t_mm#2w7ll55z*vd2b-lfa-j3j#2_x$7@iqs*v42a7f1zg'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -53,13 +56,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Configuración de CORS más permisiva para desarrollo
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React app running on port 3000
-    "http://127.0.0.1:3000",  # Alternative localhost
-]
+# Configuración de CORS para desarrollo y producción según variables de entorno
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    'DJANGO_CORS_ALLOWED_ORIGINS',
+    'http://localhost:3000,http://127.0.0.1:3000'
+).split(',')
 
-CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
 # Permitir headers adicionales

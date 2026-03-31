@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import './Login.css';
 
 const Login = () => {
@@ -60,7 +60,7 @@ const Login = () => {
     setErrors({});
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/login/', formData, {
+      const response = await axios.post('/api/login/', formData, {
         headers: {
           'Content-Type': 'application/json',
         }

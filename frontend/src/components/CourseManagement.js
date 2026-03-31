@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import './CourseManagement.css';
 
 const CourseManagement = ({ user }) => {
@@ -31,7 +31,7 @@ const CourseManagement = ({ user }) => {
   const cargarCursos = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/cursos/');
+      const response = await axios.get('/api/cursos/');
       setCursos(response.data);
     } catch (error) {
       console.error('Error al cargar cursos:', error);
@@ -43,7 +43,7 @@ const CourseManagement = ({ user }) => {
 
   const cargarProfesores = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/usuarios/listar/?user_id=${user.usuario_id}`);
+      const response = await axios.get(`/api/usuarios/listar/?user_id=${user.usuario_id}`);
       const profesoresList = response.data.filter(u => u.rol === 'profesor');
       setProfesores(profesoresList);
     } catch (error) {
@@ -53,7 +53,7 @@ const CourseManagement = ({ user }) => {
 
   const cargarEstudiantesDisponibles = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/usuarios/listar/?user_id=${user.usuario_id}`);
+      const response = await axios.get(`/api/usuarios/listar/?user_id=${user.usuario_id}`);
       const estudiantesList = response.data.filter(u => u.rol === 'estudiante');
       setEstudiantesDisponibles(estudiantesList);
     } catch (error) {
@@ -63,7 +63,7 @@ const CourseManagement = ({ user }) => {
 
   const cargarEstudiantesCurso = async (cursoId) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/estudiantes-curso/?curso_id=${cursoId}&user_id=${user.usuario_id}`);
+      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}&user_id=${user.usuario_id}`);
       setEstudiantes(response.data);
     } catch (error) {
       console.error('Error al cargar estudiantes del curso:', error);
@@ -83,7 +83,7 @@ const CourseManagement = ({ user }) => {
         profesor: user.rol === 'profesor' ? user.usuario_id : formData.profesor
       };
 
-      const response = await axios.post('http://127.0.0.1:8000/api/cursos/crear/', dataToSend);
+      const response = await axios.post('/api/cursos/crear/', dataToSend);
       
       // Actualizar la lista de cursos con el nuevo curso
       setCursos(prevCursos => [...prevCursos, response.data]);
@@ -115,7 +115,7 @@ const CourseManagement = ({ user }) => {
         user_id: user.usuario_id
       };
 
-      const response = await axios.put(`http://127.0.0.1:8000/api/cursos/${selectedCourse.id}/gestionar/`, dataToSend);
+      const response = await axios.put(`/api/cursos/${selectedCourse.id}/gestionar/`, dataToSend);
       
       setSuccessMessage('Curso actualizado exitosamente');
       setShowEditModal(false);
@@ -143,7 +143,7 @@ const CourseManagement = ({ user }) => {
 
     setIsLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/cursos/${cursoId}/gestionar/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/cursos/${cursoId}/gestionar/?user_id=${user.usuario_id}`);
       
       setSuccessMessage('Curso eliminado exitosamente');
       cargarCursos();
@@ -166,7 +166,7 @@ const CourseManagement = ({ user }) => {
         user_id: user.usuario_id
       };
 
-      await axios.post('http://127.0.0.1:8000/api/estudiantes-curso/agregar/', dataToSend);
+      await axios.post('/api/estudiantes-curso/agregar/', dataToSend);
       
       setSuccessMessage('Estudiante agregado al curso exitosamente');
       cargarEstudiantesCurso(selectedCourse.id);
@@ -190,7 +190,7 @@ const CourseManagement = ({ user }) => {
     }
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/estudiantes-curso/${inscripcionId}/remover/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/estudiantes-curso/${inscripcionId}/remover/?user_id=${user.usuario_id}`);
       
       setSuccessMessage('Estudiante removido del curso exitosamente');
       cargarEstudiantesCurso(selectedCourse.id);

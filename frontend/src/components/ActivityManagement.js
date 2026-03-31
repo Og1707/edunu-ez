@@ -35,7 +35,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
   const cargarEstudiantesCurso = async (cursoId) => {
     try {
       console.log('Cargando estudiantes del curso:', cursoId);
-      const response = await axios.get(`http://127.0.0.1:8000/api/estudiantes-curso/?curso_id=${cursoId}&user_id=${user.usuario_id}`);
+      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}&user_id=${user.usuario_id}`);
       console.log('Estudiantes cargados:', response.data.length);
       setEstudiantes(response.data);
     } catch (error) {
@@ -76,7 +76,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
           throw new Error('No hay estudiantes matriculados en este curso. Primero debes agregar estudiantes al curso.');
         }
         // Asignar a todo el curso
-        const response = await axios.post('http://127.0.0.1:8000/api/asignar-actividad-curso/', requestData);
+        const response = await axios.post('/api/asignar-actividad-curso/', requestData);
         console.log('Respuesta de asignación exitosa:', response.data);
       } else if (selectedEstudiantes.length > 0) {
         // Asignar a estudiantes específicos
@@ -87,7 +87,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
             user_id: user.usuario_id
           };
           console.log('Asignando a estudiante específico:', estudianteData);
-          await axios.post('http://127.0.0.1:8000/api/estudiantes-curso/agregar/', estudianteData);
+          await axios.post('/api/estudiantes-curso/agregar/', estudianteData);
         }
       }
 
@@ -125,13 +125,13 @@ const ActivityManagement = ({ user, onAddActivity }) => {
       console.log('Iniciando carga de datos para profesor:', user.usuario_id);
 
       // Cargar datos de manera secuencial para mejor manejo de errores
-      const actividadesResponse = await axios.get(`http://127.0.0.1:8000/api/actividades/profesor/?user_id=${user.usuario_id}`);
+      const actividadesResponse = await axios.get(`/api/actividades/profesor/?user_id=${user.usuario_id}`);
       console.log('Actividades cargadas:', actividadesResponse.data.length);
 
-      const cursosResponse = await axios.get('http://127.0.0.1:8000/api/cursos/');
+      const cursosResponse = await axios.get('/api/cursos/');
       console.log('Cursos cargados:', cursosResponse.data.length);
 
-      const tiposResponse = await axios.get('http://127.0.0.1:8000/api/tipos-actividad/');
+      const tiposResponse = await axios.get('/api/tipos-actividad/');
       console.log('Tipos cargados:', tiposResponse.data.length);
 
       setActividades(actividadesResponse.data);
@@ -223,7 +223,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
     }
     setIsLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/actividades/${actividadId}/gestionar/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/actividades/${actividadId}/gestionar/?user_id=${user.usuario_id}`);
       
       setSuccessMessage('Actividad eliminada exitosamente');
       setTimeout(() => setSuccessMessage(''), 3000);

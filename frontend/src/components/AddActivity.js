@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import './AddActivity.css';
 import ScienceQuizGame from './ScienceQuizGame';
 import GameExplorer from './GameExplorer';
@@ -38,9 +38,9 @@ const AddActivity = ({ onClose, onActivityAdded }) => {
   const cargarDatos = async () => {
     try {
       const [cursosResponse, tiposResponse, materiasCienciasResponse] = await Promise.all([
-        axios.get('http://127.0.0.1:8000/api/cursos/'),
-        axios.get('http://127.0.0.1:8000/api/tipos-actividad/'),
-        axios.get('http://127.0.0.1:8000/api/ciencias/materias/')  
+        axios.get('/api/cursos/'),
+        axios.get('/api/tipos-actividad/'),
+        axios.get('/api/ciencias/materias/')  
       ]);
 
       setCursos(cursosResponse.data);
@@ -134,7 +134,7 @@ const AddActivity = ({ onClose, onActivityAdded }) => {
         formDataToSend.append('recurso', formData.recurso);
       }
 
-      const response = await axios.post('http://127.0.0.1:8000/api/actividades/', formDataToSend, {
+      const response = await axios.post('/api/actividades/', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -146,7 +146,7 @@ const AddActivity = ({ onClose, onActivityAdded }) => {
       // Si está marcada la opción de asignar al curso, hacer la asignación
       if (formData.asignar_al_curso && formData.curso) {
         try {
-          const asignacionResponse = await axios.post('http://127.0.0.1:8000/api/asignar-actividad-curso/', {
+          const asignacionResponse = await axios.post('/api/asignar-actividad-curso/', {
             user_id: Number(userData.usuario_id),
             actividad_ids: [Number(actividadCreada.id)],
             curso_id: Number(formData.curso)
