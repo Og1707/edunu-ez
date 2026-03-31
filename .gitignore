@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Django
+db.sqlite3
+*.log
+/static/
+/media/
+
+# VSCode / JetBrains
+.vscode/
+.idea/
+*.iml
+
+# Build directories
+frontend/build/
+backend/**/build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node / npm
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Misc
+*.swp
