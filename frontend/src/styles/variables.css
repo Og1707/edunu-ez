@@ -1,5 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+
 :root {
-  --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-family-titles: "Nunito", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-family-body: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-family: var(--font-family-body);
   --background: #f8f9fa;
   --text-color: #333333;
   --primary: #667eea;
@@ -10,4 +14,15 @@
   --warning: #f59e0b;
   --danger: #ef4444;
   --font-size-base: 16px;
+  
+  /* Enhanced visual variables */
+  --border-radius-sm: 12px;
+  --border-radius-md: 20px;
+  --border-radius-lg: 25px;
+  --border-radius-xl: 30px;
+  --shadow-sm: 0 4px 15px rgba(102, 126, 234, 0.15);
+  --shadow-md: 0 8px 25px rgba(102, 126, 234, 0.25);
+  --shadow-lg: 0 15px 40px rgba(102, 126, 234, 0.35);
+  --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+  --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }

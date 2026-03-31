@@ -55,6 +55,16 @@ const Dashboard = () => {
       {/* Navbar */}
       <nav className="dashboard-navbar">
         <div className="navbar-brand">
+          <img 
+            src="/un-logo-header.svg" 
+            alt="Logo UN" 
+            style={{ 
+              width: '40px', 
+              height: '40px', 
+              marginRight: '12px',
+              display: 'block'
+            }} 
+          />
           <h2>EduNúñez</h2>
         </div>
         
