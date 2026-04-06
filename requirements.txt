@@ -1,0 +1,3 @@
+django-axes
+django-redis
+PyJWT

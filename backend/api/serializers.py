@@ -1,6 +1,6 @@
 import rest_framework.serializers as serializers
 from django.contrib.auth.hashers import make_password
-from .models import *
+from .models import Usuario, Reporte, Actividad, Curso, EstudianteCurso, AsignacionActividad
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -16,6 +16,12 @@ class UsuarioSerializer(serializers.ModelSerializer):
         # Hashear la contraseña antes de guardar
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+        return super().update(instance, validated_data)
 
 class ActividadSerializer(serializers.ModelSerializer):
     curso_nombre = serializers.CharField(source='curso.nombre', read_only=True)
@@ -48,7 +54,18 @@ class EstudianteCursoSerializer(serializers.ModelSerializer):
 class ReporteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reporte
-        fields = ['id', 'actividad', 'estudiante', 'contenido', 'fecha_creacion']
+        fields = [
+            'id',
+            'actividad',
+            'estudiante',
+            'profesor',
+            'fecha_envio',
+            'calificacion',
+            'observaciones',
+            'carencias_detectadas',
+            'recomendaciones',
+        ]
+        read_only_fields = ['fecha_envio']
 
 class AsignacionActividadSerializer(serializers.ModelSerializer):
     actividad_titulo = serializers.CharField(source='actividad.titulo', read_only=True)

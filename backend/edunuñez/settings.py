@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+import sys
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,7 +28,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -42,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'axes',
+    'auth',
     'api',  
 ]
 
@@ -52,6 +56,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -76,6 +81,18 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_LOCKOUT_PARAMETERS = ['ip_address']
+AXES_CACHE = 'default'
+AXES_LOCK_OUT_AT_FAILURE = True
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'edunuñez.urls'
@@ -105,15 +122,53 @@ WSGI_APPLICATION = 'edunuñez.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME':'edununes',
-        'USER':'root',
-        'PASSWORD': 'Osman1707',
-        'HOST': 'localhost',
-        'PORT': '9904'
+        'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.environ.get('DJANGO_DB_NAME', 'edununes'),
+        'USER': os.environ.get('DJANGO_DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', ''),
+        'HOST': os.environ.get('DJANGO_DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DJANGO_DB_PORT', '9904'),
     }
 }
 
+REDIS_URL = os.environ.get('DJANGO_REDIS_URL', 'redis://127.0.0.1:6379/1')
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
+if 'test' in sys.argv:
+    CACHES['default'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = 1
+DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@edununez.local')
+EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_USE_SSL = os.environ.get('DJANGO_EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'auth.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [],
+    'DEFAULT_THROTTLE_RATES': {
+        'invitaciones': '10/hour',
+    },
+    'DEFAULT_THROTTLE_CACHE': 'default',
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -165,6 +220,15 @@ SESSION_COOKIE_SECURE = False  # True en producción con HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Necesario para JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False  # True en producción con HTTPS
+
+# Configuración de sesión para permitir credenciales en CORS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # Cambiar a 'None' si necesitas cross-site
+SESSION_COOKIE_SECURE = False  # True en producción con HTTPS
+
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
 
 # Permitir CSRF para desarrollo
 CSRF_TRUSTED_ORIGINS = [

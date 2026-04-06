@@ -1,13 +1,16 @@
 from django.db.models import Avg
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from auth.authentication import JWTAuthentication
+from api.permissions import IsAdministrador, IsProfesor
 from ..models import Actividad, AsignacionActividad, Curso, EstudianteCurso, Usuario
 from ..serializers import ActividadSerializer, EstudianteCursoSerializer
 from ..webhooks import enviar_resultado_actividad_a_n8n, registrar_evento_actividad
-from .auth import verificar_permisos
 
 
 @api_view(['GET', 'POST'])
@@ -565,7 +568,8 @@ def obtener_estadisticas_estudiante(request):
 
 
 @api_view(['PUT', 'DELETE'])
-@verificar_permisos(['profesor', 'administrador'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
 def gestionar_actividad_especifica(request, actividad_id):
     """
     Editar o eliminar actividad
@@ -594,7 +598,8 @@ def gestionar_actividad_especifica(request, actividad_id):
 
 
 @api_view(['POST'])
-@verificar_permisos(['profesor', 'administrador'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
 def agregar_estudiante_a_curso(request):
     """
     Agregar estudiante a un curso
@@ -627,7 +632,8 @@ def agregar_estudiante_a_curso(request):
 
 
 @api_view(['DELETE'])
-@verificar_permisos(['profesor', 'administrador'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
 def remover_estudiante_de_curso(request, inscripcion_id):
     """
     Remover estudiante de un curso

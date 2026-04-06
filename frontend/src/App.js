@@ -8,6 +8,8 @@ import CourseManagement from './features/courses/CourseManagement.jsx';
 import ActivityManagement from './features/activities/ActivityManagement.jsx';
 import UserManagement from './features/users/UserManagement.jsx';
 import GameExplorer from './features/games/GameExplorer.jsx';
+import MagicLink from './pages/MagicLink.jsx';
+import VerifyMagicLink from './pages/VerifyMagicLink.jsx';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/magic-link" element={<MagicLink />} />
+          <Route path="/verify" element={<VerifyMagicLink />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/courses" element={<CourseManagement />} />
           <Route path="/activities" element={<ActivityManagement />} />
