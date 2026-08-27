@@ -1,2 +1,0 @@
-CREATE USER n8n_user WITH PASSWORD 'n8n_password';
-GRANT ALL PRIVILEGES ON DATABASE "Aprendizaje" TO n8n_user;

@@ -1,10 +1,13 @@
 import json
+import logging
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+logger = logging.getLogger(__name__)
 
-class recipientwebhooks(APIView):
+
+class RecipientWebhooks(APIView):
     authentication_classes = []
     permission_classes = []
 
@@ -14,5 +17,5 @@ class recipientwebhooks(APIView):
         except Exception:
             payload = json.loads(request.body.decode('utf-8'))
 
-        print('webhook recibido', payload)
+        logger.info('Webhook recibido: %s', payload)
         return Response({'mensaje': 'Webhook recibido'}, status=status.HTTP_200_OK)

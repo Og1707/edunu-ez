@@ -35,6 +35,18 @@
   animation: modalSlideIn 0.3s ease-out;
 }
 
+/* Modal especial para selección de plantillas */
+.template-selection-modal {
+  max-width: 900px;
+}
+
+/* Modal de ancho completo para formularios de plantillas */
+.full-width-modal {
+  width: 95%;
+  max-width: 1200px;
+  max-height: 95vh;
+}
+
 @keyframes modalSlideIn {
   from {
     opacity: 0;
@@ -44,6 +56,196 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Estilos para el flujo de plantillas */
+.template-intro {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.template-intro p {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.legacy-option {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #e9ecef;
+}
+
+.legacy-divider {
+  text-align: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.legacy-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #dee2e6;
+}
+
+.legacy-divider span {
+  background: white;
+  padding: 0 16px;
+  color: #6c757d;
+  font-size: 0.875rem;
+  position: relative;
+}
+
+.legacy-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.legacy-btn:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Header con botón de volver */
+.header-with-back {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.header-with-back h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* Mejoras en herramientas educativas */
+.educational-tools-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  border-radius: 12px;
+  border: 2px solid #e3f2fd;
+}
+
+.educational-tools-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.125rem;
+  color: #1976d2;
+}
+
+.tools-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.tool-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tool-btn.game-btn {
+  background: #ff6b6b;
+  color: white;
+}
+
+.tool-btn.game-btn:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+}
+
+.tool-btn.quiz-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.tool-btn.quiz-btn:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.tool-btn.wiki-btn {
+  background: #2196f3;
+  color: white;
+}
+
+.tool-btn.wiki-btn:hover {
+  background: #1976d2;
+  transform: translateY(-1px);
+}
+
+.selected-game {
+  margin-top: 16px;
+  padding: 16px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  border: 2px solid #4caf50;
+}
+
+.selected-game h4 {
+  margin: 0 0 8px 0;
+  color: #2e7d32;
+  font-size: 1rem;
+}
+
+.selected-game p {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+  color: #388e3c;
+}
+
+.game-details {
+  font-size: 0.75rem;
+  color: #4caf50;
+  font-weight: 500;
 }
 
 .modal-header {

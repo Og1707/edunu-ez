@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import migrations, models
 import uuid
 
@@ -7,7 +8,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('api', '0005_categoriajuego_juegoeducativo_partidajuego'),
+        ('usuarios', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -18,7 +20,7 @@ class Migration(migrations.Migration):
                 ('token', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('used', models.BooleanField(default=False)),
-                ('user', models.ForeignKey(on_delete=models.deletion.CASCADE, related_name='magic_link_tokens', to='api.usuario')),
+                ('user', models.ForeignKey(on_delete=models.deletion.CASCADE, related_name='magic_link_tokens', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'indexes': [models.Index(fields=['token'], name='auth_magi_token_3c2ea4_idx'), models.Index(fields=['created_at'], name='auth_magi_crea_1b8b98_idx')],
@@ -30,7 +32,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('email', models.EmailField(max_length=254)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(on_delete=models.deletion.CASCADE, related_name='invitations', to='api.usuario')),
+                ('created_by', models.ForeignKey(on_delete=models.deletion.CASCADE, related_name='invitations', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],

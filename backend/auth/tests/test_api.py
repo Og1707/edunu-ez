@@ -41,7 +41,7 @@ class MagicLinkIntegrationTests(APITestCase):
 
     def test_invitacion_rate_limit_por_usuario(self):
         self.client.force_authenticate(user=self.user)
-        for index in range(10):
+        for index in range(9):
             payload = {'email': f'invitado{index}@example.com'}
             response = self.client.post('/auth/invitaciones/', payload, format='json')
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)

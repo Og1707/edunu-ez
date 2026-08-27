@@ -39,3 +39,10 @@ package-lock.json
 
 # Misc
 *.swp
+
+# Análisis y herramientas locales
+graphify-out/
+documentaciones/
+user_n8n_pogres_aprendizaje.sql
+DIAGNOSTICO.md
+PLAN_MEJORA.md

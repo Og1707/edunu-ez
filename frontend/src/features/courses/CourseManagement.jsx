@@ -53,7 +53,7 @@ const CourseManagement = ({ user }) => {
 
   const cargarProfesores = async () => {
     try {
-      const response = await axios.get(`/api/usuarios/listar/?user_id=${user.usuario_id}`);
+      const response = await axios.get('/api/usuarios/listar/');
       const profesoresList = response.data.filter(u => u.rol === 'profesor');
       setProfesores(profesoresList);
     } catch (error) {
@@ -63,7 +63,7 @@ const CourseManagement = ({ user }) => {
 
   const cargarEstudiantesDisponibles = async () => {
     try {
-      const response = await axios.get(`/api/usuarios/listar/?user_id=${user.usuario_id}`);
+      const response = await axios.get('/api/usuarios/listar/');
       const estudiantesList = response.data.filter(u => u.rol === 'estudiante');
       setEstudiantesDisponibles(estudiantesList);
     } catch (error) {
@@ -73,8 +73,8 @@ const CourseManagement = ({ user }) => {
 
   const cargarEstudiantesCurso = async (cursoId) => {
     try {
-      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}&user_id=${user.usuario_id}`);
-      setEstudiantes(response.data);
+      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}`);
+      setEstudiantes(response.data.estudiantes);
     } catch (error) {
       console.error('Error al cargar estudiantes del curso:', error);
     }
@@ -88,8 +88,6 @@ const CourseManagement = ({ user }) => {
     try {
       const dataToSend = {
         ...formData,
-        user_id: user.usuario_id,
-        // Si es profesor, usar su usuario_id como profesor del curso
         profesor: user.rol === 'profesor' ? user.usuario_id : formData.profesor
       };
 
@@ -120,10 +118,7 @@ const CourseManagement = ({ user }) => {
     setErrors({});
 
     try {
-      const dataToSend = {
-        ...formData,
-        user_id: user.usuario_id
-      };
+      const dataToSend = { ...formData };
 
       const response = await axios.put(`/api/cursos/${selectedCourse.id}/gestionar/`, dataToSend);
       
@@ -153,7 +148,7 @@ const CourseManagement = ({ user }) => {
 
     setIsLoading(true);
     try {
-      await axios.delete(`/api/cursos/${cursoId}/gestionar/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/cursos/${cursoId}/gestionar/`);
       
       setSuccessMessage('Curso eliminado exitosamente');
       cargarCursos();
@@ -173,7 +168,6 @@ const CourseManagement = ({ user }) => {
       const dataToSend = {
         estudiante_id: estudianteId,
         curso_id: selectedCourse.id,
-        user_id: user.usuario_id
       };
 
       await axios.post('/api/estudiantes-curso/agregar/', dataToSend);
@@ -200,7 +194,7 @@ const CourseManagement = ({ user }) => {
     }
 
     try {
-      await axios.delete(`/api/estudiantes-curso/${inscripcionId}/remover/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/estudiantes-curso/${inscripcionId}/remover/`);
       
       setSuccessMessage('Estudiante removido del curso exitosamente');
       cargarEstudiantesCurso(selectedCourse.id);

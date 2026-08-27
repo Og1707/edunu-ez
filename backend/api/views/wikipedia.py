@@ -1,7 +1,12 @@
 import requests
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from auth.authentication import JWTAuthentication
+from api.permissions import IsProfesor, IsAdministrador
 
 from ..models import Usuario, Curso, Actividad
 
@@ -73,19 +78,18 @@ def buscar_temas_ciencias(request):
 
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
 def generar_actividad_wikipedia(request):
     """Generar una actividad basada en contenido de Wikipedia."""
-    user_id = request.data.get('user_id')
+    usuario = request.user
     tema_wikipedia = request.data.get('tema')
     curso_id = request.data.get('curso')
-    if not all([user_id, tema_wikipedia, curso_id]):
-        return Response({'mensaje': 'Faltan datos requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not all([tema_wikipedia, curso_id]):
+        return Response({'mensaje': 'Faltan datos requeridos: tema y curso'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        usuario = Usuario.objects.get(id=user_id)
-        if usuario.rol not in ['profesor', 'administrador']:
-            return Response({'mensaje': 'No tienes permisos para crear actividades'}, status=status.HTTP_403_FORBIDDEN)
-
         curso = Curso.objects.get(id=curso_id)
         search_url = f"https://es.wikipedia.org/api/rest_v1/page/summary/{tema_wikipedia}"
         response = requests.get(search_url, timeout=10)
@@ -113,7 +117,7 @@ def generar_actividad_wikipedia(request):
                 descripcion=descripcion,
                 tipo='lectura_comprensiva',
                 curso=curso,
-                creado_por=usuario
+                creado_por=usuario,
             )
             return Response({
                 'mensaje': 'Actividad creada exitosamente',
@@ -123,13 +127,11 @@ def generar_actividad_wikipedia(request):
                     'titulo': wiki_data.get('title', ''),
                     'resumen': wiki_data.get('extract', ''),
                     'imagen': wiki_data.get('thumbnail', {}).get('source', ''),
-                    'url': wiki_data.get('content_urls', {}).get('desktop', {}).get('page', '')
+                    'url': wiki_data.get('content_urls', {}).get('desktop', {}).get('page', ''),
                 }
             }, status=status.HTTP_201_CREATED)
 
         return Response({'mensaje': 'Tema no encontrado en Wikipedia'}, status=status.HTTP_404_NOT_FOUND)
-    except Usuario.DoesNotExist:
-        return Response({'mensaje': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     except Curso.DoesNotExist:
         return Response({'mensaje': 'Curso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:

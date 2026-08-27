@@ -1,0 +1,11 @@
+LOAD DATABASE
+     FROM mysql://root:Osman1707@127.0.0.1:9904/edununes
+     INTO postgresql://postgres:postgres@127.0.0.1:5432/edununez
+
+ WITH include drop, create tables, create indexes, reset sequences,
+      workers = 8, concurrency = 1,
+      multiple readers per thread, rows per range = 50000
+
+ CAST type datetime to timestamptz drop default drop not null using zero-dates-to-null,
+      type date to date drop default drop not null using zero-dates-to-null,
+      type tinyint to boolean drop typemod using tinyint-to-boolean;

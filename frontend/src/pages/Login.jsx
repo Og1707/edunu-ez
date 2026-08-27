@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axiosConfig';
 import { login } from '../services/auth.service';
 import './Login.css';
 
@@ -61,11 +60,7 @@ const Login = () => {
     setErrors({});
 
     try {
-      const response = await axios.post('/api/login/', formData, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      const response = await login(formData);
 
       // Guardar información del usuario en localStorage
       localStorage.setItem('user', JSON.stringify(response.data));

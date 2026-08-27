@@ -46,13 +46,29 @@ from .views.wikipedia import (
     buscar_temas_ciencias,
     generar_actividad_wikipedia,
 )
-from .views.webhooks import recipientwebhooks
+from .views.webhooks import RecipientWebhooks
+from .views.templates import (
+    crear_actividad_multimedia,
+    crear_actividad_texto,
+    obtener_actividad_completa,
+    obtener_actividades_por_plantilla,
+    agregar_pregunta_a_actividad,
+    eliminar_pregunta,
+    obtener_firma_cloudinary,
+)
+from .views.templates_rest import (
+    listar_plantillas_disponibles,
+    preview_plantilla_multimedia,
+    duplicar_actividad,
+    estadisticas_plantillas,
+    buscar_actividades_plantillas,
+)
 
 
 urlpatterns = [
     path('registro/', registrar_usuario, name='registro_usuario'),
     path('login/', login_usuario, name='login_usuario'),
-    path('webhook/', recipientwebhooks.as_view(), name='recipient_webhook'),
+    path('webhook/', RecipientWebhooks.as_view(), name='recipient_webhook'),
     path('actividades/', gestionar_actividades, name='gestionar_actividades'),
     path('actividades/profesor/', obtener_actividades_profesor, name='obtener_actividades_profesor'),
     path('cursos/', listar_cursos, name='listar_cursos'),
@@ -108,4 +124,26 @@ urlpatterns = [
     path('estudiante/actividades/iniciar/', iniciar_actividad_estudiante, name='iniciar_actividad_estudiante'),
     path('estudiante/actividades/completar/', completar_actividad_estudiante, name='completar_actividad_estudiante'),
     path('estudiante/estadisticas/', obtener_estadisticas_estudiante, name='obtener_estadisticas_estudiante'),
+    
+    # ============= SISTEMA DE PLANTILLAS DE ACTIVIDADES =============
+    
+    # Creación de actividades por plantilla
+    path('plantillas/', listar_plantillas_disponibles, name='listar_plantillas_disponibles'),
+    path('actividades/crear-multimedia/', crear_actividad_multimedia, name='crear_actividad_multimedia'),
+    path('actividades/crear-texto/', crear_actividad_texto, name='crear_actividad_texto'),
+    path('plantillas/preview/', preview_plantilla_multimedia, name='preview_plantilla_multimedia'),
+    
+    # Gestión de actividades completas
+    path('actividades/<int:actividad_id>/completo/', obtener_actividad_completa, name='obtener_actividad_completa'),
+    path('actividades/<int:actividad_id>/duplicar/', duplicar_actividad, name='duplicar_actividad'),
+    path('actividades/por-plantilla/', obtener_actividades_por_plantilla, name='obtener_actividades_por_plantilla'),
+    path('actividades/buscar/', buscar_actividades_plantillas, name='buscar_actividades_plantillas'),
+    
+    # Gestión de preguntas
+    path('actividades/<int:actividad_id>/preguntas/', agregar_pregunta_a_actividad, name='agregar_pregunta_a_actividad'),
+    path('preguntas/<int:pregunta_id>/eliminar/', eliminar_pregunta, name='eliminar_pregunta'),
+    
+    # Utilidades y estadísticas
+    path('cloudinary/firma/', obtener_firma_cloudinary, name='obtener_firma_cloudinary'),
+    path('plantillas/estadisticas/', estadisticas_plantillas, name='estadisticas_plantillas'),
 ]

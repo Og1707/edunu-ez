@@ -145,11 +145,10 @@ const ColorGame = ({ user, actividad, onComplete, onClose }) => {
   const saveResults = async () => {
     try {
       const response = await axios.post('/api/estudiante/actividades/completar/', {
-        user_id: user.usuario_id,
         actividad_id: actividad.id,
         puntuacion: Math.round((score / MAX_ROUNDS) * 100),
-        tiempo_empleado: Math.round(timeElapsed / 60), // en minutos
-        respuestas_detalle: respuestasRef.current, // Usar ref en lugar de state
+        tiempo_empleado: Math.round(timeElapsed / 60),
+        respuestas_detalle: respuestasRef.current,
       });
 
       // Llamar callback para notificar que se completó

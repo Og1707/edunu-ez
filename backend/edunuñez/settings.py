@@ -17,18 +17,29 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+try:
+    from dotenv import load_dotenv
+    env_path = BASE_DIR / '.env'
+    if not env_path.exists():
+        env_path = BASE_DIR.parent / '.env'
+    load_dotenv(dotenv_path=env_path)
+except ImportError:
+    pass
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-r+5^t_mm#2w7ll55z*vd2b-lfa-j3j#2_x$7@iqs*v42a7f1zg'
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# En desarrollo: configurar DJANGO_SECRET_KEY en variables de entorno o en .env
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-change-me-in-production'
+    else:
+        raise ValueError('DJANGO_SECRET_KEY debe estar configurada en producción')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -45,12 +56,20 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'axes',
+    'apps.core',
+    'apps.usuarios',
+    'apps.cursos',
+    'apps.actividades',
+    'apps.plantillas',
+    'apps.juegos',
+    'apps.ciencias',
+    'apps.integraciones',
     'auth',
-    'api',  
+    'api',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # CORS debe ir PRIMERO
+    'corsheaders.middleware.CorsMiddleware',  
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -122,14 +141,22 @@ WSGI_APPLICATION = 'edunuñez.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.mysql'),
-        'NAME': os.environ.get('DJANGO_DB_NAME', 'edununes'),
-        'USER': os.environ.get('DJANGO_DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', ''),
-        'HOST': os.environ.get('DJANGO_DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DJANGO_DB_PORT', '9904'),
+        'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.environ.get('DJANGO_DB_NAME', 'edununez'),
+        'USER': os.environ.get('DJANGO_DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DJANGO_DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DJANGO_DB_PORT', '5432'),
     }
 }
+
+if any('pytest' in arg for arg in sys.argv) or 'test' in sys.argv:
+    # Usar sqlite3 en memoria para la ejecución ultra-rápida de pytest si PostgreSQL local no está activo
+    if os.environ.get('USE_POSTGRES_TESTS', 'False').lower() not in ('true', '1'):
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        }
 
 REDIS_URL = os.environ.get('DJANGO_REDIS_URL', 'redis://127.0.0.1:6379/1')
 CACHES = {
@@ -141,7 +168,7 @@ CACHES = {
         },
     }
 }
-if 'test' in sys.argv:
+if any('pytest' in arg for arg in sys.argv) or 'test' in sys.argv:
     CACHES['default'] = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
@@ -170,10 +197,25 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CACHE': 'default',
 }
 
+# ========== CONFIGURACIÓN CLOUDINARY ==========
+import cloudinary
+
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
+)
+
+# Configuración de uploads multimedia
+CLOUDINARY_MAX_FILE_SIZE = int(os.environ.get('CLOUDINARY_MAX_FILE_SIZE', 104857600))  # 100MB por defecto
+CLOUDINARY_ALLOWED_VIDEO_FORMATS = ['mp4', 'avi', 'mov', 'flv', 'wmv', 'webm', 'mkv']
+CLOUDINARY_ALLOWED_AUDIO_FORMATS = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a']
+CLOUDINARY_ALLOWED_IMAGE_FORMATS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
-AUTH_USER_MODEL = 'api.Usuario' 
+AUTH_USER_MODEL = 'usuarios.Usuario' 
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -207,9 +249,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    str(BASE_DIR.parent / 'frontend' / 'build' / 'static'),
-]
+
+# Solo incluir el directorio de build si existe (después de npm run build)
+_frontend_static = BASE_DIR.parent / 'frontend' / 'build' / 'static'
+STATICFILES_DIRS = [str(_frontend_static)] if _frontend_static.exists() else []
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración de sesiones para permitir credenciales en CORS
 SESSION_COOKIE_HTTPONLY = True
@@ -221,11 +267,6 @@ CSRF_COOKIE_HTTPONLY = False  # Necesario para JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False  # True en producción con HTTPS
 
-# Configuración de sesión para permitir credenciales en CORS
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'  # Cambiar a 'None' si necesitas cross-site
-SESSION_COOKIE_SECURE = False  # True en producción con HTTPS
-
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
@@ -235,3 +276,22 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+# ========== CONFIGURACIÓN N8N / WEBHOOKS ==========
+# URL del webhook de n8n. Configurable por entorno para no hardcodear en código fuente.
+# En desarrollo: dejar el valor por defecto o definir N8N_WEBHOOK_URL en .env
+# En producción: definir N8N_WEBHOOK_URL en las variables de entorno del servidor
+N8N_WEBHOOK_URL = os.environ.get(
+    'N8N_WEBHOOK_URL',
+    'http://localhost:5678/webhook/Alumnos_settings'
+)
+
+# Habilitar/deshabilitar el envío de webhooks sin tocar código.
+# Útil para entornos de test o cuando n8n no está disponible.
+N8N_WEBHOOK_ENABLED = os.environ.get('N8N_WEBHOOK_ENABLED', 'True').lower() in ('true', '1', 'yes')
+
+# Timeout en segundos para la conexión al webhook.
+N8N_WEBHOOK_TIMEOUT = int(os.environ.get('N8N_WEBHOOK_TIMEOUT', '10'))
+
+# Reintentos en el envío síncrono (para envío async se fuerza 1).
+N8N_WEBHOOK_RETRY_ATTEMPTS = int(os.environ.get('N8N_WEBHOOK_RETRY_ATTEMPTS', '3'))

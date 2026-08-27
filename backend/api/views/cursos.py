@@ -19,18 +19,11 @@ def listar_cursos(request):
 
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
 def crear_curso(request):
     """Endpoint para crear un nuevo curso."""
-    user_id = request.data.get('user_id')
-    if not user_id:
-        return Response({'mensaje': 'Usuario no autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    try:
-        usuario = Usuario.objects.get(id=user_id)
-        if usuario.rol not in ['profesor', 'administrador']:
-            return Response({'mensaje': 'No tienes permisos para crear cursos'}, status=status.HTTP_403_FORBIDDEN)
-    except Usuario.DoesNotExist:
-        return Response({'mensaje': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    usuario = request.user
 
     datos_curso = request.data.copy()
     if usuario.rol == 'administrador' and datos_curso.get('profesor'):
@@ -62,7 +55,7 @@ def gestionar_curso_especifico(request, curso_id):
     try:
         curso = Curso.objects.get(id=curso_id)
 
-        if request.usuario.rol == 'profesor' and curso.profesor != request.usuario:
+        if request.user.rol == 'profesor' and curso.profesor != request.user:
             return Response({'mensaje': 'Solo puedes gestionar tus propios cursos'}, status=status.HTTP_403_FORBIDDEN)
 
         if request.method == 'PUT':
@@ -138,15 +131,17 @@ def gestionar_materias_ciencias(request):
             })
         return Response(materias_data, status=status.HTTP_200_OK)
 
-    user_id = request.data.get('user_id')
-    if not user_id:
-        return Response({'mensaje': 'Usuario no autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
+    # POST — requiere autenticación y rol administrador
+    if not (hasattr(request, 'user') and request.user and request.user.is_authenticated):
+        return Response({'mensaje': 'No autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if request.user.rol != 'administrador':
+        return Response(
+            {'mensaje': 'Solo los administradores pueden crear materias'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     try:
-        usuario = Usuario.objects.get(id=user_id)
-        if usuario.rol != 'administrador':
-            return Response({'mensaje': 'Solo los administradores pueden crear materias'}, status=status.HTTP_403_FORBIDDEN)
-
         materia = MateriaCienciasNaturales.objects.create(
             nombre=request.data.get('nombre'),
             area=request.data.get('area'),
@@ -165,8 +160,6 @@ def gestionar_materias_ciencias(request):
             'nivel': materia.get_nivel_educativo_display()
         }, status=status.HTTP_201_CREATED)
 
-    except Usuario.DoesNotExist:
-        return Response({'mensaje': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'mensaje': f'Error al crear la materia: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -186,23 +179,21 @@ def obtener_niveles_educativos(request):
 
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
 def crear_curso_ciencias(request):
     """Crear un curso de ciencias naturales."""
-    user_id = request.data.get('user_id')
     materia_id = request.data.get('materia_id')
     nombre_curso = request.data.get('nombre_curso')
     descripcion_curso = request.data.get('descripcion_curso', '')
     unidades_tematicas = request.data.get('unidades_tematicas', [])
     metodologia = request.data.get('metodologia', '')
+    usuario = request.user
 
-    if not all([user_id, materia_id, nombre_curso]):
-        return Response({'mensaje': 'Faltan datos requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+    if not all([materia_id, nombre_curso]):
+        return Response({'mensaje': 'Faltan datos requeridos: materia_id y nombre_curso'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        usuario = Usuario.objects.get(id=user_id)
-        if usuario.rol not in ['profesor', 'administrador']:
-            return Response({'mensaje': 'No tienes permisos para crear cursos'}, status=status.HTTP_403_FORBIDDEN)
-
         materia = MateriaCienciasNaturales.objects.get(id=materia_id)
 
         curso = Curso.objects.create(
@@ -232,8 +223,6 @@ def crear_curso_ciencias(request):
             'nivel': materia.get_nivel_educativo_display()
         }, status=status.HTTP_201_CREATED)
 
-    except Usuario.DoesNotExist:
-        return Response({'mensaje': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     except MateriaCienciasNaturales.DoesNotExist:
         return Response({'mensaje': 'Materia no encontrada'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:

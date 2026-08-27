@@ -10,13 +10,18 @@ from ..permissions import IsAdministrador, IsOwner, IsProfesor
 from ..serializers import UsuarioSerializer
 
 
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def registrar_usuario(request):
     """
-    Endpoint para registrar un nuevo usuario.
-    Espera un JSON con los campos necesarios para crear un Usuario.
+    Endpoint público para auto-registro de nuevos usuarios.
+    Fuerza el rol a 'estudiante' para prevenir escalamiento de privilegios.
+    Para crear profesores/administradores, usar el endpoint /api/usuarios/crear/ con autenticación.
     """
-    serializer = UsuarioSerializer(data=request.data)
+    data = request.data.copy()
+    # Forzar rol estudiante en registro público para prevenir escalamiento de privilegios
+    data['rol'] = 'estudiante'
+
+    serializer = UsuarioSerializer(data=data)
 
     if serializer.is_valid():
         serializer.save()
@@ -58,10 +63,20 @@ def login_usuario(request):
 def listar_usuarios_por_rol(request):
     """
     Lista usuarios según el rol del solicitante.
-    Profesor: Solo puede ver estudiantes.
-    Administrador: Puede ver todos los usuarios.
+
+    Permisos:
+        - Profesor: Solo puede ver estudiantes
+        - Administrador: Puede ver todos los usuarios
+
+    Returns:
+        Response: JSON array de usuarios serializado
+        - Status 200: Éxito
+        - Status 401: No autenticado
+        - Status 403: Rol insuficiente
     """
-    if request.user.rol == 'profesor':
+    usuario = request.user
+
+    if usuario.rol == 'profesor':
         usuarios = Usuario.objects.filter(rol='estudiante').order_by('username')
     else:
         usuarios = Usuario.objects.all().order_by('rol', 'username')

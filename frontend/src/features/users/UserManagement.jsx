@@ -32,7 +32,7 @@ const UserManagement = ({ user }) => {
   const cargarUsuarios = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/usuarios/listar/?user_id=${user.usuario_id}`);
+      const response = await axios.get('/api/usuarios/listar/');
       setUsuarios(response.data);
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
@@ -48,10 +48,7 @@ const UserManagement = ({ user }) => {
     setErrors({});
 
     try {
-      const dataToSend = {
-        ...formData,
-        user_id: user.usuario_id
-      };
+      const dataToSend = { ...formData };
 
       const response = await axios.post('/api/usuarios/crear/', dataToSend);
       
@@ -86,10 +83,7 @@ const UserManagement = ({ user }) => {
     setErrors({});
 
     try {
-      const dataToSend = {
-        ...formData,
-        user_id: user.usuario_id
-      };
+      const dataToSend = { ...formData };
 
       const response = await axios.put(`/api/usuarios/${selectedUser.id}/gestionar/`, dataToSend);
       
@@ -119,7 +113,7 @@ const UserManagement = ({ user }) => {
 
     setIsLoading(true);
     try {
-      await axios.delete(`/api/usuarios/${userId}/gestionar/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/usuarios/${userId}/gestionar/`);
       
       setSuccessMessage('Usuario eliminado exitosamente');
       cargarUsuarios();

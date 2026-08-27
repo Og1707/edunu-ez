@@ -36,7 +36,8 @@ class MagicLinkServiceTests(TestCase):
         self.assertTrue('access' in result)
         token_obj.refresh_from_db()
         self.assertTrue(token_obj.used)
-        payload = jwt.decode(result['access'], settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        jwt_str = result['access']['token']
+        payload = jwt.decode(jwt_str, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         self.assertEqual(payload['user_id'], self.user.id)
 
     def test_verificar_magic_link_expirado_lanza_error(self):

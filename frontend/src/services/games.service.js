@@ -7,5 +7,5 @@ export const getGames = (params = {}) => {
 };
 export const startStudentActivity = (data) => api.post('/api/estudiante/actividades/iniciar/', data);
 export const completeStudentActivity = (data) => api.post('/api/estudiante/actividades/completar/', data);
-export const getStudentActivities = (userId) => api.get(`/api/estudiante/actividades/?user_id=${userId}`);
-export const getStudentStats = (userId) => api.get(`/api/estudiante/estadisticas/?user_id=${userId}`);
+export const getStudentActivities = () => api.get('/api/estudiante/actividades/');
+export const getStudentStats = () => api.get('/api/estudiante/estadisticas/');

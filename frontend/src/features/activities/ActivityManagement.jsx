@@ -45,13 +45,11 @@ const ActivityManagement = ({ user, onAddActivity }) => {
   const cargarEstudiantesCurso = async (cursoId) => {
     try {
       console.log('Cargando estudiantes del curso:', cursoId);
-      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}&user_id=${user.usuario_id}`);
+      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}`);
       console.log('Estudiantes cargados:', response.data.length);
       setEstudiantes(response.data);
     } catch (error) {
       console.error('Error al cargar estudiantes:', error);
-      console.error('Response status:', error.response?.status);
-      console.error('Response data:', error.response?.data);
       setErrors({ estudiantes: 'Error al cargar estudiantes del curso' });
     }
   };
@@ -76,7 +74,6 @@ const ActivityManagement = ({ user, onAddActivity }) => {
       const requestData = {
         curso_id: selectedActivityForAssign.curso,
         actividad_ids: [selectedActivityForAssign.id],
-        user_id: user.usuario_id
       };
 
       console.log('Enviando datos de asignación:', requestData);
@@ -85,16 +82,13 @@ const ActivityManagement = ({ user, onAddActivity }) => {
         if (estudiantes.length === 0) {
           throw new Error('No hay estudiantes matriculados en este curso. Primero debes agregar estudiantes al curso.');
         }
-        // Asignar a todo el curso
         const response = await axios.post('/api/asignar-actividad-curso/', requestData);
         console.log('Respuesta de asignación exitosa:', response.data);
       } else if (selectedEstudiantes.length > 0) {
-        // Asignar a estudiantes específicos
         for (const estudiante of selectedEstudiantes) {
           const estudianteData = {
             estudiante_id: estudiante.estudiante.id,
             curso_id: selectedActivityForAssign.curso,
-            user_id: user.usuario_id
           };
           console.log('Asignando a estudiante específico:', estudianteData);
           await axios.post('/api/estudiantes-curso/agregar/', estudianteData);
@@ -135,7 +129,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
       console.log('Iniciando carga de datos para profesor:', user.usuario_id);
 
       // Cargar datos de manera secuencial para mejor manejo de errores
-      const actividadesResponse = await axios.get(`/api/actividades/profesor/?user_id=${user.usuario_id}`);
+      const actividadesResponse = await axios.get('/api/actividades/profesor/');
       console.log('Actividades cargadas:', actividadesResponse.data.length);
 
       const cursosResponse = await axios.get('/api/cursos/');
@@ -188,7 +182,6 @@ const ActivityManagement = ({ user, onAddActivity }) => {
       formDataToSend.append('tipo', formData.tipo);
       formDataToSend.append('curso', formData.curso);
       formDataToSend.append('estado', formData.estado);
-      formDataToSend.append('user_id', user.usuario_id);
       
       if (formData.fecha_limite) {
         formDataToSend.append('fecha_limite', formData.fecha_limite);
@@ -233,7 +226,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
     }
     setIsLoading(true);
     try {
-      await axios.delete(`/api/actividades/${actividadId}/gestionar/?user_id=${user.usuario_id}`);
+      await axios.delete(`/api/actividades/${actividadId}/gestionar/`);
       
       setSuccessMessage('Actividad eliminada exitosamente');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -349,18 +342,19 @@ const ActivityManagement = ({ user, onAddActivity }) => {
   };
 
   useEffect(() => {
-    if (user && user.usuario_id) {
-      console.log('Usuario cargado:', user);
+    // El usuario se carga desde localStorage con toda la información
+    if (user && (user.usuario_id || user.id)) {
+      console.log('Usuario cargado correctamente:', user);
       cargarDatos();
     } else {
-      console.log('Usuario no disponible aún');
+      console.log('Advertencia: Usuario no tiene ID - structure:', user);
     }
   }, [user]);
 
   return (
     <div className="activity-management">
       <div className="management-header">
-        <div>
+        <div className="header-content">
           <h2>Gestión de Actividades</h2>
           <p>
             {user.rol === 'profesor' 
@@ -370,10 +364,12 @@ const ActivityManagement = ({ user, onAddActivity }) => {
           </p>
         </div>
         {(user.rol === 'profesor' || user.rol === 'administrador') && (
-          <button className="create-activity-btn" onClick={onAddActivity}>
-            <span className="btn-icon">📝➕</span>
-            Nueva Actividad
-          </button>
+          <div className="header-actions">
+            <button className="create-activity-btn" onClick={onAddActivity}>
+              <span className="btn-icon">📝➕</span>
+              <span className="btn-text">Nueva Actividad</span>
+            </button>
+          </div>
         )}
       </div>
 

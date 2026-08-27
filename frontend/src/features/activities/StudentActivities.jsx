@@ -31,8 +31,8 @@ const StudentActivities = ({ user }) => {
       console.log('Cargando datos para estudiante:', user.usuario_id);
 
       const [actividadesResponse, estadisticasResponse] = await Promise.all([
-        axios.get(`/api/estudiante/actividades/?user_id=${user.usuario_id}`),
-        axios.get(`/api/estudiante/estadisticas/?user_id=${user.usuario_id}`)
+        axios.get('/api/estudiante/actividades/'),
+        axios.get('/api/estudiante/estadisticas/')
       ]);
 
       console.log('Datos cargados exitosamente:', {
@@ -81,7 +81,6 @@ const StudentActivities = ({ user }) => {
       setErrors({});
       
       const response = await axios.post('/api/estudiante/actividades/iniciar/', {
-        user_id: user.usuario_id,
         actividad_id: actividadId
       });
 
@@ -135,7 +134,6 @@ const StudentActivities = ({ user }) => {
       setErrors({});
 
       const response = await axios.post('/api/estudiante/actividades/completar/', {
-        user_id: user.usuario_id,
         actividad_id: actividadId,
         puntuacion: puntuacion,
         tiempo_empleado: tiempoEmpleado

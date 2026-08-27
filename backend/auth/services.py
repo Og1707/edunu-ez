@@ -13,13 +13,24 @@ User = get_user_model()
 
 
 def generar_jwt(usuario):
+    """Genera JWT y retorna diccionario con token y datos del usuario."""
     payload = {
         'user_id': usuario.pk,
         'email': usuario.email,
         'exp': timezone.now() + timedelta(hours=1),
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-    return token if isinstance(token, str) else token.decode('utf-8')
+    token_str = token if isinstance(token, str) else token.decode('utf-8')
+    
+    # Retornar token + datos del usuario para el frontend
+    return {
+        'token': token_str,
+        'usuario_id': usuario.pk,
+        'username': usuario.username,
+        'email': usuario.email,
+        'nombre_completo': usuario.nombre_completo,
+        'rol': usuario.rol,
+    }
 
 
 def validar_jwt(token):
@@ -37,6 +48,7 @@ def validar_jwt(token):
 
 
 def autenticar_usuario(request, email, password):
+    """Autentica usuario y retorna token + datos completos."""
     if not email or not password:
         raise ValueError('Faltan datos')
 
@@ -49,6 +61,7 @@ def autenticar_usuario(request, email, password):
     if usuario_autenticado is None:
         raise ValueError('Usuario o contraseña incorrectos')
 
+    # Retorna diccionario con token y datos del usuario
     return generar_jwt(usuario_autenticado)
 
 
