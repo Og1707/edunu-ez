@@ -11,6 +11,8 @@ from ..serializers import UsuarioSerializer
 
 
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([])
 def registrar_usuario(request):
     """
     Endpoint público para auto-registro de nuevos usuarios.
@@ -41,6 +43,8 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['GET', 'POST'])
+@authentication_classes([])
+@permission_classes([])
 def login_usuario(request):
     """
     Endpoint para iniciar sesión de un usuario.
