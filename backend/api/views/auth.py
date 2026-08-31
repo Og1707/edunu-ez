@@ -1,10 +1,11 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, throttle_classes
 from rest_framework.response import Response
 
 from auth.authentication import JWTAuthentication
 from auth.services import autenticar_usuario
+from api.throttling import AuthRateThrottle
 from ..models import Usuario
 from ..permissions import IsAdministrador, IsOwner, IsProfesor
 from ..serializers import UsuarioSerializer
@@ -13,9 +14,10 @@ from ..serializers import UsuarioSerializer
 @api_view(['POST'])
 @authentication_classes([])
 @permission_classes([])
+@throttle_classes([AuthRateThrottle])
 def registrar_usuario(request):
     """
-    Endpoint público para auto-registro de nuevos usuarios.
+    Endpoint público para auto-registro de nuevos usuarios con rate limiting.
     Fuerza el rol a 'estudiante' para prevenir escalamiento de privilegios.
     Para crear profesores/administradores, usar el endpoint /api/usuarios/crear/ con autenticación.
     """
@@ -45,9 +47,10 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 @api_view(['GET', 'POST'])
 @authentication_classes([])
 @permission_classes([])
+@throttle_classes([AuthRateThrottle])
 def login_usuario(request):
     """
-    Endpoint para iniciar sesión de un usuario.
+    Endpoint para iniciar sesión de un usuario con rate limiting.
     Espera un JSON con 'email' y 'password'.
     """
     email = request.data.get('email')

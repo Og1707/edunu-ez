@@ -1,0 +1,150 @@
+FASE 2: REST API PARA MÉTRICAS
+
+OBJETIVO
+Crear la capa de backend que recibe y procesa los datos de n8n, guarda métricas en PostgreSQL y expone endpoints que React puede consumir.
+
+PASOS
+
+1. Crear nuevos modelos en backend/api/models.py
+   - MetricasEstudiante
+   - EventosActividad
+   - RegistrosDesempenio
+   - RecomendacionesN8N
+
+2. Crear serializers en backend/api/serializers.py
+   - Convertir cada modelo a formato JSON
+   - Permitir respuestas limpias para el frontend
+
+3. Crear views en backend/api/views/metricas.py
+   Endpoints:
+   - GET /api/metricas/estudiante/{id}/
+     Retorna métricas actuales del estudiante
+   - GET /api/metricas/tendencia/{id}/?dias=7
+     Retorna datos históricos para gráfica
+   - GET /api/metricas/ultimas-actividades/{id}/?limit=10
+     Retorna las últimas actividades realizadas
+   - POST /api/n8n/actividad-completada/
+     Recibe datos de n8n y actualiza métricas
+
+4. Registrar URLs en backend/api/urls.py
+   - Agregar rutas para los endpoints nuevos
+
+5. Crear utilidades de cálculo en backend/api/utils/calculos_metricas.py
+   - calcular_promedio()
+   - calcular_tiempo_total()
+   - contar_actividades()
+   - calcular_tendencia()
+   - actualizar_metricas_estudiante()
+
+6. Ejecutar migraciones
+   - python manage.py makemigrations
+   - python manage.py migrate
+
+7. Probar los endpoints
+   - Verificar que GET /api/metricas/estudiante/1/ funciona
+   - Verificar que GET /api/metricas/tendencia/1/?dias=7 funciona
+   - Verificar que POST /api/n8n/actividad-completada/ funciona
+
+8. Agregar validaciones
+   - Validar campos obligatorios y rangos de valores
+   - Verificar que solo usuarios autorizados consulten sus métricas
+   - Proteger el webhook de n8n con token o validación
+
+
+FASE 3: WEBSOCKET TIEMPO REAL
+
+OBJETIVO
+Permitir que el dashboard se actualice automáticamente cuando cambian las métricas, sin necesidad de recargar la página.
+
+PASOS
+
+1. Instalar Django Channels y Daphne
+   - pip install channels daphne
+
+2. Configurar ASGI en backend/edunuñez/asgi.py
+   - Reemplazar WSGI con ASGI
+   - Agregar routing de WebSocket
+
+3. Crear consumer en backend/api/consumers.py
+   - Conexión WebSocket para usuarios
+   - Enviar eventos cuando se actualizan métricas
+
+4. Crear hook WebSocket en React
+   - Conectar a ws://localhost:8000/ws/metricas/{estudiante_id}/
+   - Actualizar estado del dashboard con los datos recibidos
+
+5. Probar en vivo
+   - Abrir dos pestañas del dashboard
+   - Completar actividad en una y ver la otra actualizarse sola
+
+
+FASE 4: FRONTEND REACT DINÁMICO
+
+OBJETIVO
+Construir los cuadros y gráficas del dashboard con datos reales consumidos desde el backend.
+
+PASOS
+
+1. Crear componentes visuales
+   - MetricaCard.jsx
+   - GraficaTendencia.jsx
+   - TablaActividades.jsx
+
+2. Crear hook useMetricas.js
+   - Consumir endpoint /api/metricas/estudiante/{id}/
+   - Manejar estado de carga y errores
+
+3. Crear hook useWebSocket.js
+   - Conectar a WebSocket
+   - Actualizar datos en tiempo real
+
+4. Actualizar Dashboard.jsx
+   - Mostrar métricas en tarjetas
+   - Mostrar gráficas con Recharts
+   - Mostrar tabla de últimas actividades
+   - Enlazar datos desde los hooks
+
+5. Estilos con CSS
+   - Usar grid para organizar tarjetas y gráficas
+   - Asegurar diseño responsivo
+
+
+FASE 5: GRÁFICAS AVANZADAS Y POLISH
+
+OBJETIVO
+Mejorar la experiencia visual, agregar análisis histórico y métricas adicionales.
+
+PASOS
+
+1. Agregar tendencias históricas
+   - Promedio semanal
+   - Actividades por día
+   - Tendencia de desempeño
+
+2. Agregar recomendaciones en dashboard
+   - Mostrar la recomendación más reciente de n8n
+   - Marcar recomendaciones no leídas
+
+3. Optimizar consultas
+   - Crear índices en PostgreSQL
+   - Agregar vistas SQL si es necesario
+
+4. Probar experiencia completa
+   - Verificar que todo se ve bien en desktop y móvil
+   - Asegurar que los datos reales se muestran correctamente
+
+
+RECOMENDACIÓN DE FLUJO DE TRABAJO CON GIT
+
+1. Crear rama de feature
+   - git checkout -b feature/metricas-dinamicas
+2. Trabajar en la rama sin afectar main
+3. Guardar cambios frecuentes
+   - git add .
+   - git commit -m "Descripción breve"
+4. Traer cambios del compañero antes de finalizar
+   - git pull origin main
+5. Resolver conflictos si aparecen
+6. Subir la rama a GitHub
+   - git push origin feature/metricas-dinamicas
+7. Abrir Pull Request y revisar antes de merge

@@ -2,7 +2,8 @@ import rest_framework.serializers as serializers
 from django.contrib.auth.hashers import make_password
 from .models import (
     Usuario, Reporte, Actividad, Curso, EstudianteCurso, AsignacionActividad,
-    ActividadMultimedia, ActividadTexto, Pregunta, OpcionRespuesta
+    ActividadMultimedia, ActividadTexto, Pregunta, OpcionRespuesta,
+    PartidaJuego, JuegoEducativo
 )
 from .utils.validators import validar_opciones_pregunta, validar_preguntas_actividad
 
@@ -304,3 +305,31 @@ class ActividadCompletaSerializer(serializers.ModelSerializer):
             'fecha_creacion', 'multimedia', 'texto', 'preguntas'
         ]
         read_only_fields = ['creado_por', 'fecha_creacion']
+
+
+class PartidaJuegoWebhookSerializer(serializers.ModelSerializer):
+    estudiante_id = serializers.IntegerField(write_only=True)
+    juego_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = PartidaJuego
+        fields = [
+            'estudiante_id', 'juego_id', 'estado', 
+            'puntuacion', 'puntuacion_maxima', 
+            'tiempo_jugado', 'aciertos', 'errores'
+        ]
+
+    def create(self, validated_data):
+        estudiante_id = validated_data.pop('estudiante_id')
+        juego_id = validated_data.pop('juego_id')
+        
+        # Busca al estudiante y el juego usando los IDs que mandó n8n
+        estudiante = Usuario.objects.get(id=estudiante_id)
+        juego = JuegoEducativo.objects.get(id=juego_id)
+        
+        # Guarda la partida en PostgreSQL
+        return PartidaJuego.objects.create(
+            estudiante=estudiante, 
+            juego=juego, 
+            **validated_data
+        )

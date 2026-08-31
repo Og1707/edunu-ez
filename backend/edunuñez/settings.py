@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 import sys
+import urllib.parse
 from datetime import timedelta
 from pathlib import Path
 
@@ -70,6 +71,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  
+    'api.middleware.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -100,6 +102,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-request-id',
 ]
 
 AXES_ENABLED = True
@@ -139,16 +142,39 @@ WSGI_APPLICATION = 'edunuñez.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get('DJANGO_DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.environ.get('DJANGO_DB_NAME', 'edununez'),
-        'USER': os.environ.get('DJANGO_DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DJANGO_DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DJANGO_DB_PORT', '5432'),
+DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('DJANGO_DATABASE_URL')
+
+if DATABASE_URL:
+    _url = urllib.parse.urlparse(DATABASE_URL)
+    _db_host = _url.hostname or '127.0.0.1'
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _url.path.lstrip('/') if _url.path else 'postgres',
+            'USER': _url.username or 'postgres',
+            'PASSWORD': _url.password or '',
+            'HOST': _db_host,
+            'PORT': str(_url.port or 5432),
+            'OPTIONS': {
+                'sslmode': 'require',
+            } if _db_host not in ('localhost', '127.0.0.1') else {},
+        }
     }
-}
+else:
+    _db_host = os.environ.get('DJANGO_DB_HOST') or os.environ.get('DB_HOST', '127.0.0.1')
+    DATABASES = {
+        'default': {
+            'ENGINE': os.environ.get('DJANGO_DB_ENGINE') or os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.environ.get('DJANGO_DB_NAME') or os.environ.get('DB_NAME', 'edununez'),
+            'USER': os.environ.get('DJANGO_DB_USER') or os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD') or os.environ.get('DB_PASSWORD', 'postgres'),
+            'HOST': _db_host,
+            'PORT': os.environ.get('DJANGO_DB_PORT') or os.environ.get('DB_PORT', '5432'),
+            'OPTIONS': {
+                'sslmode': 'require',
+            } if _db_host not in ('localhost', '127.0.0.1') else {},
+        }
+    }
 
 if any('pytest' in arg for arg in sys.argv) or 'test' in sys.argv:
     # Usar sqlite3 en memoria para la ejecución ultra-rápida de pytest si PostgreSQL local no está activo
@@ -190,11 +216,62 @@ REST_FRAMEWORK = {
         'auth.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
-    'DEFAULT_THROTTLE_CLASSES': [],
+    'EXCEPTION_HANDLER': 'api.utils.exception_handler.custom_exception_handler',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
     'DEFAULT_THROTTLE_RATES': {
+        'auth': '15/min',
+        'actividades_completar': '30/min',
         'invitaciones': '10/hour',
+        'anon': '100/day',
+        'user': '1000/day',
     },
     'DEFAULT_THROTTLE_CACHE': 'default',
+}
+
+# ========== LOGGING ESTRUCTURADO JSON ==========
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            '()': 'pythonjsonlogger.json.JsonFormatter',
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s %(user_id)s %(duration_ms)s',
+        },
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json' if not (any('pytest' in arg for arg in sys.argv) or 'test' in sys.argv) else 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'auth': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
 
 # ========== CONFIGURACIÓN CLOUDINARY ==========

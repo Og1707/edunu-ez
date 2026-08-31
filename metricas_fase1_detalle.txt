@@ -1,0 +1,100 @@
+FASE 1: CONFIGURACIÓN DE BASE DE DATOS Y MIGRACIÓN
+
+1. OBJETIVO DE LA FASE 1
+
+El objetivo fue dejar la aplicación Django lista para usar una base de datos PostgreSQL en lugar de SQLite/MySQL, y ejecutar las migraciones iniciales para crear las tablas necesarias en la nueva base.
+
+2. PASOS REALIZADOS
+
+2.1. Preparar PostgreSQL y pgAdmin
+
+- Se instaló o se utilizó PostgreSQL ya disponible en el equipo.
+- Se configuró la base de datos en pgAdmin con los datos de conexión.
+- Se creó una base de datos llamada: edununes_postgres.
+- Se confirmó que PostgreSQL escucha en el host local `127.0.0.1` y puerto `5432`.
+- Se creó o se usó un usuario de PostgreSQL con permisos de creación y lectura/escritura.
+
+2.2. Ajustar la configuración de Django
+
+En `backend/edunuñez/settings.py` se actualizó la sección de DATABASES para usar PostgreSQL.
+
+Configuración usada:
+- ENGINE: `django.db.backends.postgresql`
+- NAME: `os.environ.get('DB_NAME', 'edununes_postgres')`
+- USER: `os.environ.get('DB_USER', 'postgres')`
+- PASSWORD: `os.environ.get('DB_PASSWORD', 'admin123')`
+- HOST: `os.environ.get('DB_HOST', '127.0.0.1')`
+- PORT: `os.environ.get('DB_PORT', '5432')`
+
+Esto significa que Django buscará variables de entorno si existen, y si no, usará estos valores por defecto.
+
+2.3. Verificar dependencias Python
+
+Se debe usar el entorno virtual de Python del backend, `backend/.venv`.
+
+Se confirmó que el entorno está activo antes de correr comandos:
+- `cd backend`
+- `.\.venv\Scripts\Activate.ps1`
+
+Se verificó también que el paquete de PostgreSQL esté instalado:
+- `psycopg2-binary` o similar, ya que Django necesita este driver para conectar con PostgreSQL.
+
+2.4. Ejecutar migraciones de Django
+
+Se ejecutaron los comandos de migración para aplicar los modelos existentes sobre la nueva base de datos:
+
+- `python manage.py makemigrations`
+- `python manage.py migrate`
+
+Estos comandos hacen lo siguiente:
+- `makemigrations` crea los archivos de migración basados en los modelos de Django.
+- `migrate` ejecuta esos archivos en la base de datos PostgreSQL y crea las tablas.
+
+3. RESULTADOS OBTENIDOS
+
+Después de la fase 1, se logró lo siguiente:
+
+- Django ya está configurado para usar PostgreSQL en lugar de SQLite o MySQL.
+- La base de datos `edununes_postgres` en pgAdmin está activa y lista para recibir datos.
+- Las tablas básicas del proyecto han sido creadas correctamente en PostgreSQL.
+- El proyecto ahora puede ejecutar operaciones de base de datos usando PostgreSQL.
+
+4. VERIFICACIONES IMPORTANTES
+
+Para comprobar que todo quedó bien:
+
+- Revisar que el archivo `backend/edunuñez/settings.py` contenga la configuración PostgreSQL.
+- Abrir pgAdmin y confirmar que la base `edununes_postgres` existe.
+- En el backend, ejecutar:
+  - `python manage.py showmigrations`
+  - `python manage.py migrate --plan`
+- Probar que Django arranca sin errores de conexión SQL:
+  - `python manage.py runserver`
+
+5. NOTAS ADICIONALES
+
+- Si se desea, se pueden usar variables de entorno para no guardar la contraseña en el archivo de configuración.
+- Si el usuario o contraseña de PostgreSQL cambian, sólo hace falta ajustar las variables de entorno o los valores por defecto en settings.py.
+- En esta fase no se agregaron métricas ni endpoints nuevos, sólo se preparó la base de datos para que el proyecto pueda trabajar con PostgreSQL.
+
+6. EJEMPLO DE VARIABLES DE ENTORNO
+
+Antes de arrancar Django, se pueden definir así en PowerShell:
+
+$env:DB_NAME='edununes_postgres'
+$env:DB_USER='postgres'
+$env:DB_PASSWORD='admin123'
+$env:DB_HOST='127.0.0.1'
+$env:DB_PORT='5432'
+
+7. COMANDOS CLAVE UTILIZADOS
+
+cd backend
+.\.venv\Scripts\Activate.ps1
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+
+---
+
+Este documento detalla la primera fase del proyecto: configuración de base de datos PostgreSQL y aplicación de migraciones iniciales para dejar el backend listo para empezar a desarrollar las métricas.
