@@ -10,6 +10,7 @@ Proporciona funciones para:
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import cloudinary.utils
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -205,15 +206,13 @@ def get_upload_signature():
         }
     """
     import time
-    import hashlib
     
     timestamp = int(time.time())
     api_secret = settings.CLOUDINARY_API_SECRET if hasattr(settings, 'CLOUDINARY_API_SECRET') else ''
     api_key = cloudinary.config().api_key
     
-    # Generar firma
-    string_to_sign = f"timestamp={timestamp}{api_secret}"
-    signature = hashlib.sha1(string_to_sign.encode()).hexdigest()
+    # Generar firma con helper oficial de Cloudinary
+    signature = cloudinary.utils.api_sign_request({'timestamp': timestamp}, api_secret)
     
     return {
         'signature': signature,

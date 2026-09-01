@@ -103,7 +103,7 @@ def enviar_resultado_actividad(actividad_data: dict, retry_attempts: int = None)
 
     for intento in range(intentos):
         try:
-            response = requests.post(
+            response = requests.post(  # nosec B113
                 config['url'],
                 json=payload,
                 timeout=config['timeout'],
