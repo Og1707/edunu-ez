@@ -16,7 +16,9 @@ flake8-simplify>=0.21.0
 
 # --- Escaneo de seguridad ---
 bandit==1.7.9
-safety==3.2.0
+# pip-audit reemplaza a safety (>=3.0 requiere login/API key en CI)
+# pip-audit usa la PyPI Advisory Database sin autenticación.
+pip-audit>=2.7.0
 
 # --- Depuración local (no en CI) ---
 ipython>=8.0.0
