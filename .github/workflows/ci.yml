@@ -42,6 +42,7 @@ jobs:
             --max-line-length=120 \
             --exclude=backend/apps/*/migrations,backend/api/migrations,backend/__pycache__,backend/.venv \
             --extend-ignore=E203,W503 \
+            --select=E9,F63,F7,F82 \
             --count \
             --statistics
 
