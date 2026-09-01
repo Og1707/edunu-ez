@@ -31,13 +31,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 class LoginResponseSerializer(serializers.Serializer):
-    """Serializer para la respuesta del endpoint de login."""
-    token = serializers.CharField()
+    """Serializer para la respuesta del endpoint de login (simplejwt)."""
+
+    access = serializers.CharField(help_text="JWT access token (1 hora de vida)")
+    refresh = serializers.CharField(help_text="JWT refresh token (7 días de vida)")
     usuario_id = serializers.IntegerField()
     username = serializers.CharField()
     email = serializers.EmailField()
     nombre_completo = serializers.CharField()
-    rol = serializers.CharField()
+    rol = serializers.ChoiceField(choices=["estudiante", "profesor", "administrador"])
 
 class ActividadSerializer(serializers.ModelSerializer):
     curso_nombre = serializers.CharField(source='curso.nombre', read_only=True)

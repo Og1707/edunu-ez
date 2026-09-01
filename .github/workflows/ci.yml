@@ -1,0 +1,170 @@
+name: CI — EduNúñez Backend
+
+# Corre en cada push y en cada PR hacia main/develop.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancela runs anteriores del mismo PR para no gastar minutos innecesarios.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+
+# ---------------------------------------------------------------------------
+# JOB 1: Análisis estático con flake8
+# ---------------------------------------------------------------------------
+jobs:
+  lint:
+    name: "Lint — flake8"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar flake8
+        run: pip install flake8==7.1.0 flake8-bugbear>=24.4.26
+
+      - name: Ejecutar flake8
+        run: |
+          flake8 backend/ \
+            --max-line-length=120 \
+            --exclude=backend/apps/*/migrations,backend/api/migrations,backend/__pycache__,backend/.venv \
+            --extend-ignore=E203,W503 \
+            --count \
+            --statistics
+
+# ---------------------------------------------------------------------------
+# JOB 2: Escaneo de vulnerabilidades (bandit + safety)
+# ---------------------------------------------------------------------------
+  security:
+    name: "Seguridad — bandit + safety"
+    runs-on: ubuntu-latest
+    # Se ejecuta en paralelo con lint
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar herramientas de seguridad
+        run: pip install bandit==1.7.9 safety==3.2.0
+
+      - name: Bandit — análisis estático de seguridad
+        run: |
+          bandit -r backend/ \
+            --exclude backend/apps/*/migrations,backend/api/migrations,backend/recursos_actividades \
+            -ll \
+            --format txt
+
+      - name: Safety — vulnerabilidades en dependencias
+        run: safety check --file requirements.txt --full-report
+        # Continúa el workflow aunque safety encuentre CVE de bajo riesgo.
+        # Para bloquear PR en cualquier CVE, cambiar a: continue-on-error: false
+        continue-on-error: false
+
+# ---------------------------------------------------------------------------
+# JOB 3: Tests con cobertura mínima del 85%
+# Depende de lint para no testear código con errores de estilo graves.
+# ---------------------------------------------------------------------------
+  test:
+    name: "Tests — pytest + cobertura ≥85%"
+    runs-on: ubuntu-latest
+    needs: [lint]
+
+    # Servicios de infraestructura para los tests de integración
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: edununez_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar dependencias de desarrollo
+        run: pip install -r requirements-dev.txt
+
+      - name: Ejecutar migraciones
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: edunuñez.settings.development
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/edununez_test
+          DJANGO_REDIS_URL: redis://localhost:6379/1
+          USE_POSTGRES_TESTS: "true"
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+        run: python manage.py migrate --run-syncdb
+
+      - name: Ejecutar pytest con cobertura
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: edunuñez.settings.development
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/edununez_test
+          DJANGO_REDIS_URL: redis://localhost:6379/1
+          USE_POSTGRES_TESTS: "true"
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+          N8N_WEBHOOK_SECRET: ci-webhook-secret-for-tests-only
+        run: |
+          pytest \
+            --cov=. \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            --cov-fail-under=85 \
+            -v
+
+      - name: Subir reporte de cobertura como artefacto
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: backend/coverage.xml
+          retention-days: 7
+
+      # Opcional: Codecov — descomentar si tienes cuenta
+      # - name: Subir a Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     file: backend/coverage.xml
+      #     fail_ci_if_error: true

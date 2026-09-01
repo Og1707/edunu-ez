@@ -1,5 +1,7 @@
 # Edunuñez Django
 
+![CI](https://github.com/<TU_ORG>/<TU_REPO>/actions/workflows/ci.yml/badge.svg)
+
 Proyecto de grado: plataforma educativa con backend Django y frontend React.
 
 ## Estructura

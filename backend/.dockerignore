@@ -1,0 +1,54 @@
+# ============================================================
+# .dockerignore — EduNúñez Backend
+# Excluye archivos innecesarios del contexto de build de Docker.
+# ============================================================
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Tests y cobertura
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Archivos de desarrollo
+*.env
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# Documentación
+documentaciones/
+*.md
+!README.md
+
+# Frontend
+../frontend/
+
+# SQLite de desarrollo/tests
+*.sqlite3
+test_db.sqlite3
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Recursos de actividades (scripts de utilidad, no código de la app)
+recursos_actividades/
+
+# Logs
+*.log
+logs/

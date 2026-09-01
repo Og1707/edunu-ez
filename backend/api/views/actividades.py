@@ -1,5 +1,8 @@
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, inline_serializer
+from drf_spectacular.types import OpenApiTypes
+from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, throttle_classes
@@ -303,6 +306,19 @@ def obtener_actividades_estudiante(request):
     return Response(actividades_data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=["Actividades — Estudiante"],
+    summary="Iniciar una actividad",
+    description="Registra que el estudiante autenticado ha comenzado una actividad asignada.",
+    request=inline_serializer(
+        name="IniciarActividadRequest",
+        fields={"actividad_id": drf_serializers.IntegerField()},
+    ),
+    responses={
+        200: OpenApiResponse(description="Actividad iniciada correctamente"),
+        404: OpenApiResponse(description="Actividad no encontrada"),
+    },
+)
 @api_view(['POST'])
 @authentication_classes(_JWT_AUTH)
 @permission_classes(_IS_AUTH)
@@ -316,6 +332,33 @@ def iniciar_actividad_estudiante(request):
     return Response(resultado, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=["Actividades — Estudiante"],
+    summary="Completar una actividad",
+    description=(
+        "Registra que el estudiante autenticado ha completado una actividad, "
+        "guardando puntuación, tiempo empleado y respuestas detalladas. "
+        "Limitado a 30 solicitudes/min por usuario."
+    ),
+    request=inline_serializer(
+        name="CompletarActividadRequest",
+        fields={
+            "actividad_id": drf_serializers.IntegerField(),
+            "puntuacion": drf_serializers.FloatField(default=0, required=False),
+            "tiempo_empleado": drf_serializers.IntegerField(default=0, required=False, help_text="Tiempo en segundos"),
+            "respuestas_detalle": drf_serializers.ListField(
+                child=drf_serializers.DictField(),
+                required=False,
+                help_text="Array de objetos con pregunta_id, respuesta_seleccionada y es_correcta",
+            ),
+        },
+    ),
+    responses={
+        200: OpenApiResponse(description="Actividad completada y resultado enviado a n8n"),
+        400: OpenApiResponse(description="Datos inválidos o actividad ya completada"),
+        429: OpenApiResponse(description="Rate limit excedido"),
+    },
+)
 @api_view(['POST'])
 @authentication_classes(_JWT_AUTH)
 @permission_classes(_IS_AUTH)

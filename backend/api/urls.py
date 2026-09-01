@@ -1,4 +1,5 @@
 from django.urls import path
+from .views.health import health_check
 from .views.auth import (
     registrar_usuario,
     login_usuario,
@@ -66,9 +67,10 @@ from .views.templates_rest import (
 
 
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('registro/', registrar_usuario, name='registro_usuario'),
     path('login/', login_usuario, name='login_usuario'),
-    path('webhook/', RecipientWebhooks.as_view(), name='recipient_webhook'),
+    path('webhooks/n8n/', RecipientWebhooks.as_view(), name='recipient_webhook'),
     path('actividades/', gestionar_actividades, name='gestionar_actividades'),
     path('actividades/profesor/', obtener_actividades_profesor, name='obtener_actividades_profesor'),
     path('cursos/', listar_cursos, name='listar_cursos'),

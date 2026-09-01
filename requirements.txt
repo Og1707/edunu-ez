@@ -1,16 +1,42 @@
-Django>=4.2,<6.0
-djangorestframework>=3.14
+# ============================================================
+# Dependencias de producción — EduNúñez Backend
+# ============================================================
+
+# --- Framework ---
+Django>=5.2,<5.3
+djangorestframework>=3.15,<4.0
+
+# --- Autenticación JWT (reemplaza PyJWT manual) ---
+djangorestframework-simplejwt==5.3.1
+
+# --- Seguridad y protección ---
 django-cors-headers>=4.3.0
 django-axes>=6.1.0
-django-redis>=6.0.0
-PyJWT>=2.8.0
-cloudinary>=1.35.0
+
+# --- Base de datos ---
 psycopg[binary]>=3.1.0
-redis>=4.0.0
-requests>=2.31.0
+
+# --- Caché ---
+django-redis>=5.4.0
+redis>=5.0.0
+
+# --- Almacenamiento multimedia ---
+cloudinary>=1.40.0
+
+# --- Tareas y HTTP externo ---
+requests>=2.32.0
+
+# --- Variables de entorno ---
 python-dotenv>=1.0.0
-pytest>=8.0.0
-pytest-django>=4.8.0
-pytest-cov>=4.1.0
-factory-boy>=3.3.0
+
+# --- Logging estructurado ---
 python-json-logger>=3.0.0
+
+# --- Monitoreo / errores en producción ---
+sentry-sdk[django]==2.13.0
+
+# --- Servidor WSGI de producción ---
+gunicorn==22.0.0
+
+# --- Documentación OpenAPI ---
+drf-spectacular==0.27.2

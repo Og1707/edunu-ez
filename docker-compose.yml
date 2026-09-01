@@ -1,25 +1,117 @@
-version: '3.8'
+version: "3.9"
+
+# ============================================================
+# docker-compose.yml — EduNúñez (desarrollo y staging)
+#
+# Uso:
+#   docker compose up -d          → levanta todos los servicios
+#   docker compose logs -f backend → ver logs del backend
+#   docker compose down -v         → detener y eliminar volúmenes
+#
+# Variables de entorno: copia .env.example a .env y edita.
+# ============================================================
 
 services:
+
+  # ----------------------------------------------------------
+  # PostgreSQL 16
+  # ----------------------------------------------------------
   db:
     image: postgres:16-alpine
     container_name: edununez_postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DJANGO_DB_NAME:-edununez}
       POSTGRES_USER: ${DJANGO_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DJANGO_DB_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_EXTERNAL_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - edununez_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DJANGO_DB_USER:-postgres} -d ${DJANGO_DB_NAME:-edununez}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
+  # ----------------------------------------------------------
+  # Redis 7
+  # ----------------------------------------------------------
   redis:
     image: redis:7-alpine
     container_name: edununez_redis
-    restart: always
+    restart: unless-stopped
+    command: redis-server --appendonly yes
     ports:
-      - "6379:6379"
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - edununez_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
+  # ----------------------------------------------------------
+  # Backend Django + Gunicorn
+  # ----------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: edununez_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Sobreescribir variables que dependen de la red interna de Docker.
+      DJANGO_SETTINGS_MODULE: edunuñez.settings.production
+      DATABASE_URL: "postgres://${DJANGO_DB_USER:-postgres}:${DJANGO_DB_PASSWORD:-postgres}@db:5432/${DJANGO_DB_NAME:-edununez}"
+      DJANGO_REDIS_URL: "redis://redis:6379/1"
+      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}"
+    ports:
+      - "${BACKEND_EXTERNAL_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - edununez_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      # Monta el código fuente solo en desarrollo para hot-reload.
+      # En producción, comentar este volumen para usar la imagen compilada.
+      - ./backend:/app:ro
+      - static_files:/app/staticfiles
+
+# ----------------------------------------------------------
+# Redes
+# ----------------------------------------------------------
+networks:
+  edununez_net:
+    driver: bridge
+    name: edununez_net
+
+# ----------------------------------------------------------
+# Volúmenes persistentes
+# ----------------------------------------------------------
 volumes:
   postgres_data:
+    name: edununez_postgres_data
+  redis_data:
+    name: edununez_redis_data
+  static_files:
+    name: edununez_static_files

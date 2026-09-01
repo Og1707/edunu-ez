@@ -1,0 +1,22 @@
+# ============================================================
+# Dependencias de desarrollo y CI — NO instalar en producción
+# ============================================================
+-r requirements.txt
+
+# --- Testing ---
+pytest>=8.2.0
+pytest-django>=4.8.0
+pytest-cov>=5.0.0
+factory-boy>=3.3.0
+
+# --- Análisis estático ---
+flake8==7.1.0
+flake8-bugbear>=24.4.26
+flake8-simplify>=0.21.0
+
+# --- Escaneo de seguridad ---
+bandit==1.7.9
+safety==3.2.0
+
+# --- Depuración local (no en CI) ---
+ipython>=8.0.0
