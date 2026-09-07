@@ -232,23 +232,37 @@ REST_FRAMEWORK = {
 }
 
 # ========== LOGGING ESTRUCTURADO JSON ==========
+try:
+    import pythonjsonlogger  # noqa: F401
+    _json_logger_available = True
+except ImportError:
+    _json_logger_available = False
+
+_use_json_formatter = (
+    _json_logger_available
+    and not (any('pytest' in arg for arg in sys.argv) or 'test' in sys.argv)
+)
+
+_formatters = {
+    'verbose': {
+        'format': '[{asctime}] {levelname} {name}: {message}',
+        'style': '{',
+    },
+}
+if _json_logger_available:
+    _formatters['json'] = {
+        '()': 'pythonjsonlogger.json.JsonFormatter',
+        'format': '%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s %(user_id)s %(duration_ms)s',
+    }
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'json': {
-            '()': 'pythonjsonlogger.json.JsonFormatter',
-            'format': '%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s %(user_id)s %(duration_ms)s',
-        },
-        'verbose': {
-            'format': '[{asctime}] {levelname} {name}: {message}',
-            'style': '{',
-        },
-    },
+    'formatters': _formatters,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'json' if not (any('pytest' in arg for arg in sys.argv) or 'test' in sys.argv) else 'verbose',
+            'formatter': 'json' if _use_json_formatter else 'verbose',
         },
     },
     'root': {
