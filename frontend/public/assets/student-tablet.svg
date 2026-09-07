@@ -1,0 +1,113 @@
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+
+    <linearGradient id="shirtGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#4338ca" />
+    </linearGradient>
+
+    <linearGradient id="tabletGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a5b4fc" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Background decorative shapes -->
+  <rect x="6" y="18" width="42" height="42" rx="13" fill="#14b8a6" opacity="0.9" />
+  <rect x="215" y="8" width="52" height="28" rx="9" fill="#6366f1" opacity="0.9" />
+  <rect x="252" y="48" width="40" height="22" rx="8" fill="#a5b4fc" opacity="0.8" />
+  <rect x="158" y="6" width="36" height="18" rx="7" fill="#c7d2fe" opacity="0.85" />
+
+  <!-- Character group -->
+  <g transform="rotate(-6 150 170)">
+
+    <!-- Neck -->
+    <path d="M136 138 C136 138 136 163 136 166 C143 170 153 170 160 166 C160 163 160 138 160 138 Z" fill="#fed7aa" />
+
+    <!-- Shirt / Torso -->
+    <g filter="url(#softShadow)">
+      <path d="M96 173 C114 163 180 163 200 173 L216 256 C190 264 106 264 80 256 Z" fill="url(#shirtGradient)" />
+      <!-- Collar -->
+      <path d="M136 166 L148 184 L160 166 C152 171 144 171 136 166 Z" fill="#e0e7ff" />
+    </g>
+
+    <!-- Arms -->
+    <path d="M90 188 C74 202 68 224 78 240 C84 249 98 247 99 235 C101 220 96 202 106 190 Z" fill="#4338ca" />
+    <path d="M206 188 C222 200 228 220 220 238 C215 248 202 247 200 235 C198 220 200 202 190 190 Z" fill="#4338ca" />
+    <!-- Hands -->
+    <ellipse cx="86" cy="241" rx="12" ry="10" fill="#fed7aa" />
+    <ellipse cx="212" cy="239" rx="12" ry="10" fill="#fed7aa" />
+
+    <!-- Ears -->
+    <circle cx="101" cy="106" r="9" fill="#fed7aa" />
+    <circle cx="193" cy="106" r="9" fill="#fed7aa" />
+
+    <!-- Hair (flowing) -->
+    <path d="M148 22 C 104 22 92 54 94 88 C 94 99 96 109 97 121 L 90 132 C 83 165 80 208 90 240 C 94 250 106 251 103 237 C 98 206 97 163 103 128 C 107 106 106 90 106 86 C 106 58 122 42 148 42 C 173 42 189 58 189 86 C 189 90 187 106 191 128 C 196 163 196 205 192 234 C 190 248 200 247 203 236 C 210 202 209 162 204 130 L 199 120 C 200 109 201 99 201 88 C 202 54 191 22 148 22 Z" fill="url(#hairGradient)" />
+
+    <!-- Face -->
+    <path d="M103 83 C103 46 191 46 191 83 C191 128 171 148 147 148 C123 148 103 128 103 83 Z" fill="#fed7aa" />
+
+    <!-- Cheeks -->
+    <ellipse cx="120" cy="113" rx="8" ry="5.5" fill="#f87171" opacity="0.35" />
+    <ellipse cx="174" cy="113" rx="8" ry="5.5" fill="#f87171" opacity="0.35" />
+
+    <!-- Eyes -->
+    <ellipse cx="126" cy="103" rx="4.5" ry="6.5" fill="#0f172a" />
+    <ellipse cx="168" cy="103" rx="4.5" ry="6.5" fill="#0f172a" />
+    <circle cx="124.3" cy="101.5" r="1.8" fill="#ffffff" />
+    <circle cx="166.3" cy="101.5" r="1.8" fill="#ffffff" />
+
+    <!-- Eyebrows -->
+    <path d="M118 91 C123 87 130 88 134 91.5" stroke="#1e1b4b" stroke-width="2.3" stroke-linecap="round" fill="none" />
+    <path d="M176 91 C171 87 164 88 160 91.5" stroke="#1e1b4b" stroke-width="2.3" stroke-linecap="round" fill="none" />
+
+    <!-- Nose -->
+    <path d="M147 105 C145 110 149 112 147 114" stroke="#fdba74" stroke-width="1.8" stroke-linecap="round" fill="none" />
+
+    <!-- Smile -->
+    <path d="M138 121 C142 128 152 128 156 121" stroke="#0f172a" stroke-width="2.6" stroke-linecap="round" fill="none" />
+
+    <!-- Bangs -->
+    <path d="M107 73 C117 57 135 55 147 61 C159 55 177 57 187 73 C181 55 167 39 147 39 C129 39 113 55 107 73 Z" fill="#1e1b4b" />
+
+    <!-- TABLET -->
+    <g filter="url(#softShadow)">
+      <rect x="75" y="193" width="144" height="98" rx="14" fill="url(#tabletGradient)" />
+      <rect x="83" y="201" width="128" height="82" rx="9" fill="#eef2ff" />
+
+      <!-- Screen header -->
+      <rect x="90" y="208" width="114" height="12" rx="4" fill="#ffffff" />
+      <circle cx="97" cy="214" r="2.6" fill="#4f46e5" />
+      <rect x="104" y="212" width="36" height="4" rx="2" fill="#818cf8" />
+
+      <!-- Content card -->
+      <rect x="90" y="226" width="64" height="50" rx="7" fill="#ffffff" />
+      <circle cx="122" cy="246" r="10" fill="#6366f1" />
+      <polygon points="119,241 127,246 119,251" fill="#ffffff" />
+      <rect x="96" y="266" width="52" height="3.5" rx="1.5" fill="#c7d2fe" />
+      <rect x="96" y="272" width="34" height="3" rx="1.5" fill="#a5b4fc" />
+
+      <!-- Side stats -->
+      <rect x="160" y="226" width="44" height="23" rx="6" fill="#ffffff" />
+      <path d="M182 231 L184 235 L188 236 L185 239 L186 243 L182 241 L178 243 L179 239 L176 236 L180 235 Z" fill="#fbbf24" />
+      <rect x="166" y="244" width="32" height="2.8" rx="1.4" fill="#fef08a" />
+
+      <rect x="160" y="253" width="44" height="23" rx="6" fill="#4f46e5" />
+      <rect x="166" y="260" width="30" height="3.5" rx="1.5" fill="#ffffff" />
+      <rect x="166" y="267" width="18" height="2.8" rx="1.4" fill="#a5b4fc" />
+    </g>
+
+    <!-- Fingers overlapping tablet -->
+    <ellipse cx="87" cy="246" rx="8" ry="7" fill="#fed7aa" />
+    <ellipse cx="211" cy="244" rx="8" ry="7" fill="#fed7aa" />
+  </g>
+</svg>
