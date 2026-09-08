@@ -54,13 +54,9 @@ const Home = () => {
 
             <div className="hero-buttons">
 
-              <a href="/register" className="btn-primary">
-                Explorar Plataforma
+              <a href="/login" className="btn-primary">
+                Iniciar sesion
                 <ArrowRight size={19} />
-              </a>
-
-              <a href="/login" className="btn-secondary">
-                Ingresar como Estudiante
               </a>
 
             </div>

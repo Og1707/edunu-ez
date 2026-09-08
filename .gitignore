@@ -46,3 +46,10 @@ documentaciones/
 user_n8n_pogres_aprendizaje.sql
 DIAGNOSTICO.md
 PLAN_MEJORA.md
+
+# Documentación de trabajo local (no relevante para el repo)
+PALETA_COLORES.md
+PLAN_IMPLEMENTACION_FRONTEND.md
+FRONTEND_ARCHITECTURE.md
+*AUDITOR*.txt
+metricas_*.txt

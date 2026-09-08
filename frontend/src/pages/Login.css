@@ -1,28 +1,353 @@
-/* Login.css */
-.login-container {
+/* ================================================================
+   Login.css — EduNúñez
+   Estilos para la página de Login con layout CSS Grid 2 columnas.
+   Paleta de colores unificada con Home.css (indigo/violeta).
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ── Variables ──────────────────────────────────────────────────── */
+/*
+   Paleta oficial EduNúñez — basada en Home.css
+   Indigo/violeta como color principal, fondo blanco/gris muy claro.
+*/
+:root {
+  /* Paleta principal */
+  --color-bg:           #f4f5ff;      /* Fondo gris-azulado muy claro (igual al hero del Home) */
+  --color-primary:      #4f46e5;      /* Indigo principal */
+  --color-primary-dark: #3730a3;      /* Indigo oscuro (hover) */
+  --color-primary-soft: #6366f1;      /* Indigo medio (gradientes) */
+  --color-primary-pale: #eef2ff;      /* Indigo muy claro (fondos de acento) */
+  --color-accent:       #f87171;      /* Rojo coral (accent secundario) */
+  --color-yellow:       #f59e0b;      /* Ámbar/amarillo */
+  --color-success:      #10b981;      /* Verde esmeralda */
+  --color-white:        #FFFFFF;
+
+  /* Panel / tarjeta — fondo claro */
+  --glass-bg:           rgba(255, 255, 255, 0.94);
+  --glass-border:       rgba(226, 232, 240, 0.90);  /* #e2e8f0 con alpha */
+  --glass-blur:         0px;                         /* Sin blur: fondo claro no lo necesita */
+
+  /* Texto */
+  --text-primary:       #172554;      /* Azul marino muy oscuro (igual a h1 del Home) */
+  --text-secondary:     #64748b;      /* Slate 500 — subtítulos y párrafos */
+  --text-label:         #475569;      /* Slate 600 — labels de formulario */
+  --text-placeholder:   #94a3b8;      /* Slate 400 — placeholders */
+
+  /* Inputs */
+  --input-bg:           #f8faff;      /* Fondo ligeramente azulado */
+  --input-border:       #e2e8f0;      /* Slate 200 */
+  --input-border-focus: var(--color-primary);
+  --input-border-error: #f87171;      /* Red 400 */
+
+  /* Bordes y radios */
+  --radius-card:        24px;
+  --radius-input:       12px;
+  --radius-btn:         10px;
+
+  /* Sombras */
+  --shadow-card:        0 35px 80px rgba(30, 41, 59, 0.12), 0 8px 25px rgba(30, 41, 59, 0.07);
+  --shadow-btn:         0 10px 25px rgba(79, 70, 229, 0.25);
+  --shadow-btn-hover:   0 15px 30px rgba(79, 70, 229, 0.30);
+
+  /* Transiciones */
+  --transition-fast:    0.2s ease;
+  --transition-normal:  0.3s ease;
+
+  /* Tipografía */
+  --font-family:        'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+}
+
+/* ── Reset base ─────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── Contenedor raíz — CSS Grid 2 columnas ─────────────────────── */
+.login-page {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: radial-gradient(
+      circle at 85% 45%,
+      rgba(99, 102, 241, 0.10),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #f8faff 50%,
+      #f4f5ff 100%
+    );
+  font-family: var(--font-family);
+  overflow: hidden;
+}
+
+/* ── Columna izquierda: ilustración ────────────────────────────── */
+.login-illustration {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 2rem;
+  /* Degradado sutil indigo sobre el fondo claro */
+  background: linear-gradient(
+    135deg,
+    rgba(79, 70, 229, 0.05) 0%,
+    rgba(99, 102, 241, 0.03) 100%
+  );
+  overflow: hidden;
 }
 
-.login-card {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+.login-illustration svg {
   width: 100%;
-  max-width: 400px;
-  animation: slideUp 0.6s ease-out;
+  max-width: 580px;
+  height: auto;
+  /* Animación de entrada */
+  animation: fadeSlideLeft 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes slideUp {
+/* ── Columna derecha: panel del formulario ──────────────────────── */
+.login-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* ── Tarjeta — fondo blanco, sombra del Home ────────────────────── */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  padding: 2.75rem 2.5rem;
+  box-shadow: var(--shadow-card);
+  animation: fadeSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.1s;
+}
+
+/* ── Encabezado ─────────────────────────────────────────────────── */
+.login-header {
+  margin-bottom: 2rem;
+}
+
+.login-header h1 {
+  color: var(--text-primary);
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0 0 0.4rem;
+  /* Acento con gradiente indigo — paleta oficial Home */
+  background: linear-gradient(90deg, #4f46e5, #6366f1, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ── Banner de error general ────────────────────────────────────── */
+.login-error-banner {
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #FCA5A5;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Formulario ─────────────────────────────────────────────────── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Grupo de campo ─────────────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: var(--text-label);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ── Inputs ─────────────────────────────────────────────────────── */
+.form-group input {
+  padding: 0.9rem 1rem;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  font-size: 0.96rem;
+  font-family: var(--font-family);
+  transition:
+    border-color var(--transition-fast),
+    background  var(--transition-fast),
+    box-shadow  var(--transition-fast);
+  outline: none;
+}
+
+.form-group input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.form-group input:focus {
+  border-color: var(--input-border-focus);
+  background: rgba(139, 224, 208, 0.08);
+  box-shadow: 0 0 0 3px rgba(139, 224, 208, 0.18);
+}
+
+.form-group input.input-error {
+  border-color: var(--input-border-error);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.form-group input.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+/* ── Mensajes de error por campo ────────────────────────────────── */
+.field-error {
+  color: #FCA5A5;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: block;
+}
+
+/* ── Enlace "Forgot Password?" ──────────────────────────────────── */
+.forgot-link {
+  align-self: flex-end;
+  margin-top: 0.25rem;
+  color: var(--color-primary);
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.forgot-link:hover {
+  color: var(--color-primary-dark);
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+/* ── Botón LOGIN ────────────────────────────────────────────────── */
+.login-btn {
+  margin-top: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-soft) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-btn);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-btn);
+  transition:
+    transform      var(--transition-fast),
+    box-shadow     var(--transition-fast),
+    filter         var(--transition-fast);
+}
+
+.login-btn::before {
+  /* Brillo superior */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-btn) var(--radius-btn) 0 0;
+  pointer-events: none;
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-btn-hover);
+  filter: brightness(1.08);
+}
+
+.login-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-btn);
+  filter: brightness(0.96);
+}
+
+.login-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Estado de carga — spinner CSS */
+.login-btn--loading {
+  color: transparent;
+}
+
+.login-btn--loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.30);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+.login-footer {
+  text-align: center;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.login-footer p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.login-footer a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 700;
+  transition: color var(--transition-fast);
+}
+
+.login-footer a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* ── Animaciones ────────────────────────────────────────────────── */
+@keyframes fadeSlideUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
@@ -30,200 +355,100 @@
   }
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.login-header h2 {
-  color: #333;
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.login-header p {
-  color: #666;
-  font-size: 1rem;
-  margin: 0;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #333;
-  font-size: 0.95rem;
-}
-
-.form-group input {
-  padding: 14px 16px;
-  border: 2px solid #e1e5e9;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background-color: #fafbfc;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-group input.error {
-  border-color: #e74c3c;
-  background-color: #fdf2f2;
-}
-
-.error-text {
-  color: #e74c3c;
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin-top: 4px;
-}
-
-.error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #f5c6cb;
-  margin-bottom: 20px;
-  font-weight: 500;
-}
-
-.login-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 16px 24px;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-.login-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.login-button:active {
-  transform: translateY(0);
-}
-
-.login-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.login-button.loading {
-  color: transparent;
-}
-
-.login-button.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  border: 2px solid transparent;
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+@keyframes fadeSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-.login-footer {
-  text-align: center;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #e1e5e9;
-}
+/* ================================================================
+   RESPONSIVIDAD
+   ================================================================ */
 
-.login-footer p {
-  color: #666;
-  margin: 0;
-}
-
-.login-footer a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.login-footer a:hover {
-  color: #764ba2;
-  text-decoration: underline;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .login-container {
-    padding: 10px;
+/* ── Tablet — < 900px: columna de ilustración arriba, formulario abajo ── */
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
-  
+
+  .login-illustration {
+    padding: 1.5rem 2rem 0;
+    max-height: 280px;
+  }
+
+  .login-illustration svg {
+    max-width: 340px;
+  }
+
+  .login-panel {
+    padding: 1.5rem 1.25rem 2.5rem;
+  }
+
   .login-card {
-    padding: 30px 20px;
-    border-radius: 15px;
+    max-width: 480px;
+    padding: 2.25rem 2rem;
   }
-  
-  .login-header h2 {
+}
+
+/* ── Mobile — < 600px ── */
+@media (max-width: 600px) {
+  .login-illustration {
+    /* Ocultar en pantallas muy pequeñas para maximizar espacio del formulario */
+    display: none;
+  }
+
+  .login-page {
+    grid-template-rows: 1fr;
+    align-items: center;
+  }
+
+  .login-panel {
+    padding: 1.25rem 1rem;
+  }
+
+  .login-card {
+    padding: 2rem 1.5rem;
+    border-radius: 18px;
+  }
+
+  .login-header h1 {
+    font-size: 2rem;
+  }
+
+  .form-group input {
+    padding: 0.85rem 0.9rem;
+    font-size: 0.94rem;
+  }
+
+  .login-btn {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.96rem;
+  }
+}
+
+/* ── Landscape mobile muy estrecho ── */
+@media (max-width: 380px) {
+  .login-card {
+    padding: 1.75rem 1.25rem;
+    border-radius: 14px;
+  }
+
+  .login-header h1 {
     font-size: 1.8rem;
   }
-  
-  .form-group input {
-    padding: 12px 14px;
-  }
-  
-  .login-button {
-    padding: 14px 20px;
-    font-size: 1rem;
-  }
-}
 
-@media (max-width: 480px) {
-  .login-card {
-    padding: 25px 15px;
-  }
-  
-  .login-header h2 {
-    font-size: 1.6rem;
-  }
-  
-  .form-group {
-    gap: 6px;
-  }
-  
   .login-form {
-    gap: 16px;
+    gap: 1rem;
   }
 }
