@@ -49,7 +49,8 @@ class MagicLinkServiceTests(TestCase):
 
         # Verificar que el access token es decodificable por simplejwt
         decoded = AccessToken(result["access"])
-        self.assertEqual(decoded["user_id"], self.user.id)
+        # JWT numeric claims are serialized as strings; compare the value semantically.
+        self.assertEqual(int(decoded["user_id"]), self.user.id)
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_verificar_magic_link_marca_token_como_usado(self):

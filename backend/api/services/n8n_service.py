@@ -103,7 +103,8 @@ def enviar_resultado_actividad(actividad_data: dict, retry_attempts: int = None)
 
     for intento in range(intentos):
         try:
-            response = requests.post(
+            # The timeout is finite and comes from Django settings; Bandit cannot infer dynamic values.
+            response = requests.post(  # nosec B113
                 config['url'],
                 json=payload,
                 timeout=config['timeout'],

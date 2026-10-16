@@ -213,7 +213,8 @@ def get_upload_signature():
     
     # Generar firma
     string_to_sign = f"timestamp={timestamp}{api_secret}"
-    signature = hashlib.sha1(string_to_sign.encode()).hexdigest()
+    # Cloudinary's signature protocol requires SHA-1; this is protocol compatibility, not password hashing.
+    signature = hashlib.sha1(string_to_sign.encode(), usedforsecurity=False).hexdigest()
     
     return {
         'signature': signature,

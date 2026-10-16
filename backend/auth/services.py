@@ -7,7 +7,7 @@ PyJWT ya no se usa directamente aquí.
 """
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.utils.html import escape
 from django.utils import timezone
@@ -136,7 +136,7 @@ def verificar_magic_link(token: str) -> dict:
 
     try:
         token_obj = MagicLinkToken.objects.select_related("user").get(token=token)
-    except (ObjectDoesNotExist, ValueError):
+    except (ObjectDoesNotExist, ValueError, ValidationError):
         raise ValueError("Token inválido")
 
     if token_obj.used:
