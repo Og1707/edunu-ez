@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import EmptyState from '../../components/ui/EmptyState';
+import SkeletonLoader from '../../components/ui/SkeletonLoader';
 import axios from '../../utils/axiosConfig';
 import {
   getCourseStudents,
@@ -446,10 +448,7 @@ const ActivityManagement = ({ user, onAddActivity }) => {
       )}
 
       {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando actividades...</p>
-        </div>
+        <SkeletonLoader count={3} label="Cargando actividades" />
       ) : (
         <div className="activities-grid">
           {actividadesFiltradas.map(actividad => (
@@ -529,19 +528,18 @@ const ActivityManagement = ({ user, onAddActivity }) => {
           ))}
 
           {actividadesFiltradas.length === 0 && (
-            <div className="empty-state">
-              <p>
-                {actividades.length === 0 
-                  ? 'No hay actividades para mostrar' 
-                  : 'No se encontraron actividades con los filtros aplicados'
-                }
-              </p>
-              {(user.rol === 'profesor' || user.rol === 'administrador') && (
+            <EmptyState
+              icon="📝"
+              title={actividades.length === 0 ? 'Aún no hay actividades' : 'No encontramos actividades'}
+              description={actividades.length === 0
+                ? 'Crea una actividad para comenzar.'
+                : 'Prueba ajustando o limpiando los filtros aplicados.'}
+              action={actividades.length === 0 && (user.rol === 'profesor' || user.rol === 'administrador') ? (
                 <button className="create-activity-btn" onClick={onAddActivity}>
                   Crear primera actividad
                 </button>
-              )}
-            </div>
+              ) : null}
+            />
           )}
         </div>
       )}

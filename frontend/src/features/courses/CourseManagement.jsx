@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import EmptyState from '../../components/ui/EmptyState';
+import SkeletonLoader from '../../components/ui/SkeletonLoader';
 import axios from '../../utils/axiosConfig';
 import {
   getCourses,
@@ -295,10 +297,7 @@ const CourseManagement = ({ user }) => {
       )}
 
       {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando cursos...</p>
-        </div>
+        <SkeletonLoader count={3} label="Cargando cursos" />
       ) : (
         <div className="courses-grid">
           {cursos.map(curso => (
@@ -352,12 +351,16 @@ const CourseManagement = ({ user }) => {
           ))}
 
           {cursos.length === 0 && (
-            <div className="empty-state">
-              <p>No hay cursos para mostrar</p>
-              <button className="create-course-btn" onClick={openCreateModal}>
-                Crear primer curso
-              </button>
-            </div>
+            <EmptyState
+              icon="📚"
+              title="Aún no hay cursos"
+              description="Crea un curso para organizar las actividades de tus estudiantes."
+              action={(
+                <button className="create-course-btn" onClick={openCreateModal}>
+                  Crear primer curso
+                </button>
+              )}
+            />
           )}
         </div>
       )}

@@ -1,7 +1,7 @@
-/* Tailwind directives comentadas temporalmente - usando CDN */
-/* @tailwind base;
+/* Keep Tailwind utilities available without resetting legacy feature styles. */
+@tailwind base;
 @tailwind components;
-@tailwind utilities; */
+@tailwind utilities;
 
 body {
   margin: 0;

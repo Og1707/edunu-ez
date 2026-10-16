@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Button from '../components/ui/Button';
+import FormField from '../components/ui/FormField';
 import { login } from '../services/auth.service';
 import HeroIllustration from './HeroIllustration';
 import './Login.css';
@@ -123,56 +125,46 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="login-form" noValidate>
 
             {/* Campo: Username (email) */}
-            <div className="form-group">
-              <label htmlFor="email">Correo Electrónico</label>
-              <input
+            <FormField
+                className="form-group"
+                label="Correo Electrónico"
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={errors.email ? 'input-error' : ''}
+                inputClassName={errors.email ? 'input-error' : ''}
                 placeholder="Ingresa tu correo electrónico"
                 autoComplete="username"
-                aria-describedby={errors.email ? 'email-error' : undefined}
+                error={errors.email}
               />
-              {errors.email && (
-                <span id="email-error" className="field-error" role="alert">
-                  {errors.email}
-                </span>
-              )}
-            </div>
 
             {/* Campo: Password */}
             <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
-              <input
+              <FormField
+                label="Contraseña"
                 type="password"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={errors.password ? 'input-error' : ''}
+                inputClassName={errors.password ? 'input-error' : ''}
                 placeholder="Ingresa tu contraseña"
                 autoComplete="current-password"
-                aria-describedby={errors.password ? 'password-error' : undefined}
-              />
-              {errors.password && (
-                <span id="password-error" className="field-error" role="alert">
-                  {errors.password}
-                </span>
-              )}
+                error={errors.password}
+                />
               <a href="/magic-link" className="forgot-link">Olvide mi contraseña</a>
             </div>
 
             {/* Botón submit */}
-            <button
+            <Button
               type="submit"
-              className={`login-btn${isLoading ? ' login-btn--loading' : ''}`}
+              className="login-btn"
+              isLoading={isLoading}
               disabled={isLoading}
             >
               {isLoading ? 'Logging in…' : 'INICIAR SESIÓN'}
-            </button>
+            </Button>
           </form>
           {/* Footer */}
         </div>
