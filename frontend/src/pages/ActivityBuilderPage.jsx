@@ -53,7 +53,10 @@ export default function ActivityBuilderPage() {
   };
 
   const publish = async () => {
-    if (!validatedData) return;
+    if (!validatedData) {
+      setError('No hay una actividad validada para publicar. Vuelve al editor y valida su contenido.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -63,7 +66,6 @@ export default function ActivityBuilderPage() {
       navigate('/activities', { state: { notice: 'Actividad publicada correctamente.' } });
     } catch (err) {
       setError(err.response?.data?.mensaje || 'No fue posible publicar la actividad. Revisa los datos e inténtalo de nuevo.');
-      setStep(1);
     } finally {
       setSaving(false);
     }
@@ -84,7 +86,7 @@ export default function ActivityBuilderPage() {
       <ol className="activity-builder__steps" aria-label="Pasos de creación">
         {['Tipo de actividad', 'Contenido', 'Previsualización'].map((label, index) => <li key={label} className={step === index ? 'is-current' : step > index ? 'is-done' : ''}><span>{step > index ? '✓' : index + 1}</span>{label}</li>)}
       </ol>
-      {error && <p className="activity-builder__message" role="status">{error}</p>}
+      {error && <p className="activity-builder__message" role="alert">{error}</p>}
       {step === 0 && <TemplateSelector selectedTemplate={template} onTemplateSelect={selectTemplate} />}
       {step === 1 && <>
         <div className="activity-builder__mobile-tabs"><button type="button" aria-pressed={previewTab === 'edit'} onClick={() => setPreviewTab('edit')}>Editar</button><button type="button" aria-pressed={previewTab === 'preview'} onClick={() => setPreviewTab('preview')}>Ver preview</button></div>
@@ -93,7 +95,7 @@ export default function ActivityBuilderPage() {
           <aside className={`activity-builder__live-preview ${previewTab === 'preview' ? '' : 'is-mobile-hidden'}`}><h2>Vista previa en vivo</h2><h3>{draft.titulo || 'Título de la actividad'}</h3><p>{draft.descripcion || 'La descripción aparecerá aquí.'}</p>{(draft.preguntas || []).map((q, i) => <div className="activity-builder__question" key={q.id || i}><strong>{i + 1}. {q.enunciado || 'Pregunta sin enunciado'}</strong><ul>{(q.opciones || []).map((o, j) => <li key={o.id || j}>{o.texto || 'Opción'}</li>)}</ul></div>)}</aside>
         </div>
       </>}
-      {step === 2 && <section className="activity-builder__review"><div className="activity-builder__review-heading"><div><h2>Revisa tu actividad</h2><p>Confirma el contenido antes de publicarlo.</p></div><button type="button" onClick={() => setStep(1)}>Editar contenido</button></div><ActivityPreview templateType={template} activityData={activityData} isVisible onClose={() => setStep(1)} /><div className="activity-builder__publish"><button type="button" onClick={() => setStep(1)}>Volver al editor</button><button type="button" disabled={saving} onClick={publish}>{saving ? 'Publicando…' : 'Publicar actividad'}</button></div></section>}
+      {step === 2 && <section className="activity-builder__review"><div className="activity-builder__review-heading"><div><h2>Revisa tu actividad</h2><p>Confirma el contenido antes de publicarlo.</p></div><button type="button" onClick={() => setStep(1)}>Editar contenido</button></div><ActivityPreview templateType={template} activityData={activityData} isVisible onClose={() => setStep(1)} onConfirm={publish} isSaving={saving} /><div className="activity-builder__publish"><button type="button" onClick={() => setStep(1)}>Volver al editor</button><button type="button" disabled={saving} onClick={publish}>{saving ? 'Publicando…' : 'Publicar actividad'}</button></div></section>}
     </main>
   );
 }

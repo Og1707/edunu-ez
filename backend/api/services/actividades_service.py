@@ -78,7 +78,7 @@ class ActividadesService:
                 'descripcion': act.descripcion,
                 'tipo': act.tipo,
                 'template_type': act.template_type,
-                'recurso': act.recurso,
+                'recurso': act.recurso.url if act.recurso else None,
                 'fecha_limite': act.fecha_limite,
                 'estado': act.estado,
                 'curso': act.curso_id,

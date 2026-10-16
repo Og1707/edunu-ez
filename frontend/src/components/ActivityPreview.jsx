@@ -6,7 +6,9 @@ const ActivityPreview = ({
   templateType, 
   activityData, 
   onClose, 
-  isVisible 
+  isVisible,
+  onConfirm,
+  isSaving = false,
 }) => {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -353,8 +355,8 @@ const ActivityPreview = ({
             Cerrar
           </button>
           {preview?.valido && (
-            <button className="btn btn-success">
-              ✓ Estructura válida
+            <button type="button" className="btn btn-success" onClick={onConfirm} disabled={isSaving}>
+              {isSaving ? 'Publicando…' : 'Publicar actividad'}
             </button>
           )}
         </div>

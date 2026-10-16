@@ -11,6 +11,19 @@ import { listUsers } from '../services/users.service';
 import './Dashboard.css';
 
 const asList = (data, key) => Array.isArray(data) ? data : data?.[key] || [];
+const withRequestLabel = (promise, label) => promise.catch((failure) => {
+  failure.requestLabel = label;
+  throw failure;
+});
+
+const describeLoadError = (failure) => {
+  const detail = failure.response?.data?.mensaje || failure.response?.data?.detail;
+  const status = failure.response?.status;
+  const source = failure.requestLabel ? `${failure.requestLabel}: ` : '';
+  if (detail) return `${source}${detail}`;
+  if (status) return `${source}el servidor respondió con HTTP ${status}.`;
+  return `${source}no se pudo conectar con el servidor.`;
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -39,15 +52,19 @@ export default function Dashboard() {
             { label: 'Usuarios', value: asList(usersResponse.data, 'usuarios').length, icon: <Users/>, description: 'Cuentas registradas' },
           ]);
         } else {
-          const [activitiesResponse, coursesResponse] = await Promise.all([getTeacherActivities(), getCourses()]);
+          const [activitiesResponse, coursesResponse] = await Promise.all([
+            withRequestLabel(getTeacherActivities(), 'Actividades'),
+            withRequestLabel(getCourses(), 'Cursos'),
+          ]);
           const courses = asList(coursesResponse.data, 'cursos').filter((course) => Number(course.profesor) === Number(user?.usuario_id));
           if (active) setMetrics([
             { label: 'Mis actividades', value: asList(activitiesResponse.data, 'actividades').length, icon: <ClipboardList/>, description: 'En los cursos que orientas' },
             { label: 'Mis cursos', value: courses.length, icon: <BookOpen/>, description: 'Cursos a tu cargo' },
           ]);
         }
-      } catch (_) {
-        if (active) setError('No fue posible cargar el resumen del panel. Puedes abrir las secciones para volver a intentarlo.');
+      } catch (failure) {
+        console.error('Error loading dashboard:', failure);
+        if (active) setError(`No fue posible cargar el resumen del panel. ${describeLoadError(failure)}`);
       } finally { if (active) setLoading(false); }
     };
     load();

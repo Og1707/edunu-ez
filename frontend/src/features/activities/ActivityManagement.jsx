@@ -9,6 +9,17 @@ import { getCourses } from '../../services/courses.service';
 import './ActivityManagement.css';
 
 const emptyForm = { titulo: '', descripcion: '', curso: '', tipo: 'otro', estado: 'pendiente', fecha_limite: '' };
+const withRequestLabel = (promise, label) => promise.catch((failure) => {
+  failure.requestLabel = label;
+  throw failure;
+});
+const describeLoadError = (failure) => {
+  const detail = failure.response?.data?.mensaje || failure.response?.data?.detail;
+  const source = failure.requestLabel ? `${failure.requestLabel}: ` : '';
+  if (detail) return `${source}${detail}`;
+  if (failure.response?.status) return `${source}el servidor respondió con HTTP ${failure.response.status}.`;
+  return `${source}no se pudo conectar con el servidor.`;
+};
 
 export default function ActivityManagement({ user }) {
   const navigate = useNavigate();
@@ -32,12 +43,19 @@ export default function ActivityManagement({ user }) {
     setLoading(true);
     try {
       const activityRequest = user?.rol === 'administrador' ? getActivities() : getTeacherActivities();
-      const [activityResponse, courseResponse, typeResponse] = await Promise.all([activityRequest, getCourses(), getActivityTypes()]);
+      const [activityResponse, courseResponse, typeResponse] = await Promise.all([
+        withRequestLabel(activityRequest, 'Actividades'),
+        withRequestLabel(getCourses(), 'Cursos'),
+        withRequestLabel(getActivityTypes(), 'Tipos de actividad'),
+      ]);
       setActivities(Array.isArray(activityResponse.data) ? activityResponse.data : activityResponse.data.actividades || []);
       setCourses(Array.isArray(courseResponse.data) ? courseResponse.data : courseResponse.data.cursos || []);
       setTypes(typeResponse.data || []);
       setError('');
-    } catch (_) { setError('No se pudieron cargar las actividades. Inténtalo de nuevo.'); }
+    } catch (failure) {
+      console.error('Error loading activity management:', failure);
+      setError(`No se pudieron cargar las actividades. ${describeLoadError(failure)}`);
+    }
     finally { setLoading(false); }
   }, [user?.rol]);
   useEffect(() => { load(); }, [load]);

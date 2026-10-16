@@ -150,7 +150,7 @@ class OpcionRespuestaSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpcionRespuesta
         fields = [
-            'texto', 'es_correcta', 'orden'
+            'id', 'texto', 'es_correcta', 'orden'
         ]
         read_only_fields = ['id', 'created_at']
 
