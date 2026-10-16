@@ -8,7 +8,7 @@ import './Login.css';
 
 /**
  * Login
- * PÃ¡gina de inicio de sesiÃ³n de EduNÃºÃ±ez.
+ * Pagina de inicio de sesion de EduNúñez. Contiene un formulario de login con validación de email y contraseña.
  *
  * Layout: CSS Grid de 2 columnas.
  *   - Columna izquierda â†’ HeroIllustration (SVG ilustrativo)
@@ -31,7 +31,7 @@ const Login = () => {
   const [errors, setErrors]       = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  /* â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,7 +46,7 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // ValidaciÃ³n de email
+    // Validacion de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = 'El email es requerido';
@@ -74,7 +74,7 @@ const Login = () => {
     try {
       const response = await login(formData);
 
-      // Guardar informaciÃ³n del usuario en localStorage
+      // Guardar informacion del usuario en localStorage
       localStorage.setItem('user', JSON.stringify(response.data));
 
       // Redirigir al dashboard
@@ -94,7 +94,7 @@ const Login = () => {
     }
   };
 
-  /* â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
 
   return (
     <div className="login-page">
@@ -110,11 +110,11 @@ const Login = () => {
 
           {/* Encabezado */}
           <div className="login-header">
-            <h1>Iniciar SesiÃ³n</h1>
-            <p>Bienvenido a EduNÃºÃ±ez!</p>
+            <h1>Iniciar sesión</h1>
+            <p>¡Bienvenido a EduNúñez!</p>
           </div>
 
-          {/* Error general (credenciales incorrectas / servidor caÃ­do) */}
+          {/* Error general (credenciales incorrectas / servidor caído) */}
           {errors.general && (
             <div className="login-error-banner" role="alert">
               {errors.general}
@@ -127,14 +127,14 @@ const Login = () => {
             {/* Campo: Username (email) */}
             <FormField
                 className="form-group"
-                label="Correo ElectrÃ³nico"
+                label="Correo Electrónico"
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 inputClassName={errors.email ? 'input-error' : ''}
-                placeholder="Ingresa tu correo electrÃ³nico"
+                placeholder="Ingresa tu correo electrónico"
                 autoComplete="username"
                 required
                 error={errors.email}
@@ -143,14 +143,14 @@ const Login = () => {
             {/* Campo: Password */}
             <div className="form-group">
               <FormField
-                label="ContraseÃ±a"
+                label="Contraseña"
                 type="password"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 inputClassName={errors.password ? 'input-error' : ''}
-                placeholder="Ingresa tu contraseÃ±a"
+                placeholder="Ingresa tu contraseña"
                 autoComplete="current-password"
                 required
                 error={errors.password}
@@ -165,7 +165,7 @@ const Login = () => {
               isLoading={isLoading}
               disabled={isLoading}
             >
-              {isLoading ? 'Logging inâ€¦' : 'INICIAR SESIÃ“N'}
+              {isLoading ? 'Iniciando sesión…' : 'INICIAR SESIÓN'}
             </Button>
           </form>
           {/* Footer */}

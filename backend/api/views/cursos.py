@@ -29,7 +29,7 @@ def listar_cursos(request):
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
+@permission_classes([IsAuthenticated, IsAdministrador])
 def crear_curso(request):
     """Endpoint para crear un nuevo curso de manera atómica con invalidación de caché."""
     curso = CursosService.crear_curso(creador=request.user, datos=request.data)
@@ -143,7 +143,7 @@ def obtener_niveles_educativos(request):
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
+@permission_classes([IsAuthenticated, IsAdministrador])
 def crear_curso_ciencias(request):
     """Crear un curso de ciencias naturales de forma atómica."""
     resultado = CursosService.crear_curso_ciencias(usuario=request.user, datos=request.data)
