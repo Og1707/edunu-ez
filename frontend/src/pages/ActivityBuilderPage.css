@@ -1,0 +1,26 @@
+.activity-builder { min-height: 100vh; padding: 1.5rem clamp(1rem, 4vw, 3rem) 3rem; color: var(--color-neutral-900); background: var(--color-neutral-50); }
+.activity-builder__header { display:flex; align-items:center; gap:1.25rem; max-width:1440px; margin:0 auto 1.5rem; }
+.activity-builder__header h1 { margin:0; font-size:clamp(1.5rem, 3vw, 2rem); }
+.activity-builder__header p { margin:.3rem 0 0; color:var(--color-neutral-600); }
+.activity-builder__back,.activity-builder__draft,.activity-builder__review-heading button,.activity-builder__publish button,.activity-builder__mobile-tabs button { border:1px solid var(--color-neutral-300); border-radius:var(--radius-md); padding:.65rem .9rem; background:white; color:inherit; font:inherit; cursor:pointer; }
+.activity-builder__draft { margin-left:auto; }
+.activity-builder__steps { display:flex; justify-content:center; gap:clamp(1rem,5vw,4rem); max-width:900px; margin:2rem auto; padding:0; list-style:none; }
+.activity-builder__steps li { display:flex; align-items:center; gap:.55rem; color:var(--color-neutral-500); }
+.activity-builder__steps li span { display:grid; place-items:center; width:2rem; height:2rem; border-radius:50%; background:var(--color-neutral-200); font-weight:700; }
+.activity-builder__steps li.is-current { color:var(--color-primary-700); font-weight:700; }
+.activity-builder__steps li.is-current span,.activity-builder__steps li.is-done span { color:white; background:var(--color-primary-600); }
+.activity-builder > .template-selector,.activity-builder__columns,.activity-builder__review { max-width:1440px; margin:0 auto; }
+.activity-builder__columns { display:grid; grid-template-columns:minmax(0,7fr) minmax(280px,5fr); align-items:start; gap:1.5rem; }
+.activity-builder__live-preview { position:sticky; top:1rem; padding:1.25rem; border:1px solid var(--color-neutral-200); border-radius:var(--radius-lg); background:white; }
+.activity-builder__live-preview h2 { margin-top:0; font-size:1.1rem; }
+.activity-builder__live-preview h3 { margin-bottom:.35rem; }
+.activity-builder__live-preview p { color:var(--color-neutral-600); }
+.activity-builder__question { margin-top:1rem; padding:1rem; border-radius:var(--radius-md); background:var(--color-neutral-50); }
+.activity-builder__question ul { margin-bottom:0; }
+.activity-builder__mobile-tabs { display:none; }
+.activity-builder__message { max-width:1440px; margin:0 auto 1rem; padding:.75rem 1rem; border-radius:var(--radius-md); color:var(--color-primary-800); background:var(--color-primary-50); }
+.activity-builder__review { padding:1.5rem; border-radius:var(--radius-lg); background:white; }
+.activity-builder__review-heading,.activity-builder__publish { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.activity-builder__publish { justify-content:flex-end; margin-top:1.5rem; }
+.activity-builder__publish button:last-child { color:white; border-color:var(--color-primary-600); background:var(--color-primary-600); }
+@media(max-width:767px){ .activity-builder { padding:1rem .75rem 2rem; } .activity-builder__header { flex-wrap:wrap; align-items:flex-start; } .activity-builder__back { width:100%; text-align:left; } .activity-builder__draft { margin-left:0; } .activity-builder__steps { justify-content:space-between; gap:.25rem; font-size:.75rem; } .activity-builder__steps li { flex-direction:column; text-align:center; max-width:6rem; } .activity-builder__mobile-tabs { display:flex; gap:.5rem; margin-bottom:.75rem; } .activity-builder__mobile-tabs button[aria-pressed="true"] { color:white; background:var(--color-primary-600); } .activity-builder__columns { display:block; } .activity-builder__live-preview { position:static; } .activity-builder__columns .is-mobile-hidden { display:none; } .activity-builder__review-heading { align-items:flex-start; flex-direction:column; } .activity-builder__publish { flex-direction:column-reverse; } .activity-builder__publish button { width:100%; } }

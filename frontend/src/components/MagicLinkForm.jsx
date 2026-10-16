@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import api from '../services/api';
 
 export default function MagicLinkForm() {
   const [email, setEmail] = useState('');
@@ -13,19 +14,10 @@ export default function MagicLinkForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/auth/magic-link/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error || 'No se pudo enviar el magic link');
-      } else {
-        setMessage(data.mensaje);
-      }
+      const response = await api.post('/auth/magic-link/', { email });
+      setMessage(response.data.mensaje || 'Revisa tu correo para continuar.');
     } catch (err) {
-      setError('Error de red. Intenta nuevamente.');
+      setError(err.response?.data?.error || err.response?.data?.mensaje || 'No se pudo enviar el enlace. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }

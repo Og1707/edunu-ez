@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 export default function VerifyMagicLink() {
   const navigate = useNavigate();
@@ -16,18 +17,14 @@ export default function VerifyMagicLink() {
 
     const verify = async () => {
       try {
-        const response = await fetch(`/auth/magic-link/verify/?token=${encodeURIComponent(token)}`);
-        const data = await response.json();
+        const response = await api.get('/auth/magic-link/verify/', { params: { token } });
+        const data = response.data;
         window.history.replaceState({}, document.title, window.location.pathname);
-        if (!response.ok) {
-          setError(data.error || 'Token inválido');
-          return;
-        }
-        window.sessionStorage.setItem('AUTH_TOKEN', data.access);
+        localStorage.setItem('user', JSON.stringify(data));
         setMessage('Inicio de sesión exitoso, redirigiendo...');
         setTimeout(() => navigate('/dashboard'), 800);
       } catch (err) {
-        setError('Error de conexión al verificar token');
+        setError(err.response?.data?.error || err.response?.data?.mensaje || 'No se pudo verificar el enlace. Solicita uno nuevo.');
       }
     };
 

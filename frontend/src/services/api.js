@@ -15,9 +15,10 @@ api.interceptors.request.use(
       try {
         const user = JSON.parse(userRaw);
 
-        if (user?.token && !config.headers?.Authorization) {
+        const accessToken = user?.access || user?.token;
+        if (accessToken && !config.headers?.Authorization) {
           config.headers = config.headers || {};
-          config.headers.Authorization = `Bearer ${user.token}`;
+          config.headers.Authorization = `Bearer ${accessToken}`;
         }
       } catch (error) {
         // Si el JSON está corrupto, no rompemos la request.

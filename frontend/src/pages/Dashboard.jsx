@@ -1,157 +1,67 @@
-import React, { useState } from 'react';
-import './Dashboard.css';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Activity, BookOpen, CheckCircle2, ClipboardList, Gamepad2, Users } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
-import AddActivity from '../features/activities/AddActivity';
+import StatCard from '../components/ui/StatCard';
+import EmptyState from '../components/ui/EmptyState';
+import { getStudentStats } from '../services/games.service';
+import { getTeacherActivities, getActivities } from '../services/activities.service';
+import { getCourses } from '../services/courses.service';
+import { listUsers } from '../services/users.service';
+import './Dashboard.css';
 
-const Dashboard = () => {
+const asList = (data, key) => Array.isArray(data) ? data : data?.[key] || [];
+
+export default function Dashboard() {
   const { user } = useAuth();
-  const [showAddActivity, setShowAddActivity] = useState(false);
+  const [metrics, setMetrics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const isStudent = user?.rol === 'estudiante';
+  const isAdmin = user?.rol === 'administrador';
 
-  const handleAddActivity = () => {
-    setShowAddActivity(true);
-  };
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        if (isStudent) {
+          const { data } = await getStudentStats();
+          if (active) setMetrics([
+            { label: 'Actividades completadas', value: data.actividades_completadas, icon: <CheckCircle2/>, description: `${data.porcentaje_completado}% de avance` },
+            { label: 'Actividades pendientes', value: data.actividades_pendientes, icon: <ClipboardList/>, description: `${data.actividades_por_vencer} por vencer pronto` },
+            { label: 'Promedio', value: `${data.puntuacion_promedio}%`, icon: <Activity/>, description: 'Según tus actividades calificadas' },
+          ]);
+        } else if (isAdmin) {
+          const [activitiesResponse, coursesResponse, usersResponse] = await Promise.all([getActivities(), getCourses(), listUsers()]);
+          if (active) setMetrics([
+            { label: 'Actividades', value: asList(activitiesResponse.data, 'actividades').length, icon: <ClipboardList/>, description: 'Registradas en la plataforma' },
+            { label: 'Cursos', value: asList(coursesResponse.data, 'cursos').length, icon: <BookOpen/>, description: 'Cursos disponibles' },
+            { label: 'Usuarios', value: asList(usersResponse.data, 'usuarios').length, icon: <Users/>, description: 'Cuentas registradas' },
+          ]);
+        } else {
+          const [activitiesResponse, coursesResponse] = await Promise.all([getTeacherActivities(), getCourses()]);
+          const courses = asList(coursesResponse.data, 'cursos').filter((course) => Number(course.profesor) === Number(user?.usuario_id));
+          if (active) setMetrics([
+            { label: 'Mis actividades', value: asList(activitiesResponse.data, 'actividades').length, icon: <ClipboardList/>, description: 'En los cursos que orientas' },
+            { label: 'Mis cursos', value: courses.length, icon: <BookOpen/>, description: 'Cursos a tu cargo' },
+          ]);
+        }
+      } catch (_) {
+        if (active) setError('No fue posible cargar el resumen del panel. Puedes abrir las secciones para volver a intentarlo.');
+      } finally { if (active) setLoading(false); }
+    };
+    load();
+    return () => { active = false; };
+  }, [isStudent, isAdmin, user?.usuario_id]);
 
-  const handleCloseAddActivity = () => {
-    setShowAddActivity(false);
-  };
+  const links = isStudent
+    ? [{ to: '/activities', label: 'Mis actividades', description: 'Continúa tus tareas y revisa tus resultados.', icon: <ClipboardList/> }, { to: '/games', label: 'Explorar juegos', description: 'Practica con juegos educativos.', icon: <Gamepad2/> }, { to: '/progress', label: 'Mi progreso', description: 'Consulta estadísticas e historial.', icon: <Activity/> }]
+    : [{ to: '/activities', label: 'Gestionar actividades', description: 'Crea y organiza actividades educativas.', icon: <ClipboardList/> }, { to: '/courses', label: 'Gestionar cursos', description: 'Administra cursos y estudiantes.', icon: <BookOpen/> }, ...(isAdmin ? [{ to: '/users', label: 'Gestionar usuarios', description: 'Administra las cuentas y sus roles.', icon: <Users/> }] : [])];
 
-  const handleActivityAdded = (newActivity) => {
-    // Aquí puedes actualizar la lista de actividades si es necesario
-    console.log('Nueva actividad añadida:', newActivity);
-  };
-
-  if (!user) {
-    return <div className="loading">Cargando...</div>;
-  }
-
-  return (
-    <div className="dashboard-container">
-      <div className="dashboard-main">
-        <DashboardHome user={user} onAddActivity={handleAddActivity} />
-      </div>
-      {showAddActivity && (
-        <AddActivity onClose={handleCloseAddActivity} onActivityAdded={handleActivityAdded} />
-      )}
-    </div>
-  );
-};
-
-// Componente Dashboard Home
-const DashboardHome = ({ user, onAddActivity }) => {
-  return (
-    <div className="dashboard-home">
-      {/* Header de bienvenida */}
-      <div className="welcome-header">
-        <div className="welcome-text">
-          <h1>¡Bienvenido, {user.nombre_completo || user.username}! 👋</h1>
-          <p>Aquí tienes un resumen de tu actividad en EduNúñez</p>
-        </div>
-        <div className="welcome-actions">
-          {(user.rol === 'profesor' || user.rol === 'administrador') && (
-            <button className="add-activity-btn" onClick={onAddActivity}>
-              <span className="btn-icon">➕</span>
-              Añadir Actividad
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Tarjetas de estadísticas */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">📚</div>
-          <div className="stat-content">
-            <h3>12</h3>
-            <p>Actividades Completadas</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">🎯</div>
-          <div className="stat-content">
-            <h3>85%</h3>
-            <p>Promedio General</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">⏱️</div>
-          <div className="stat-content">
-            <h3>24h</h3>
-            <p>Tiempo de Estudio</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">🏆</div>
-          <div className="stat-content">
-            <h3>5</h3>
-            <p>Logros Obtenidos</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Accesos rápidos */}
-      <div className="quick-access">
-        <h2>Accesos Rápidos</h2>
-        <div className="quick-access-grid">
-          <div className="quick-access-card">
-            <div className="quick-icon">🎮</div>
-            <h3>Juegos Interactivos</h3>
-            <p>Aprende jugando con nuestras actividades gamificadas</p>
-            <button className="quick-btn">Explorar</button>
-          </div>
-          
-          <div className="quick-access-card">
-            <div className="quick-icon">📝</div>
-            <h3>Evaluaciones</h3>
-            <p>Realiza pruebas y evalúa tu progreso</p>
-            <button className="quick-btn">Comenzar</button>
-          </div>
-          
-          <div className="quick-access-card">
-            <div className="quick-icon">📈</div>
-            <h3>Mi Progreso</h3>
-            <p>Revisa tu rendimiento y estadísticas detalladas</p>
-            <button className="quick-btn">Ver Detalles</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Actividades recientes */}
-      <div className="recent-activities">
-        <h2>Actividades Recientes</h2>
-        <div className="activities-list">
-          <div className="activity-item">
-            <div className="activity-icon">🧩</div>
-            <div className="activity-info">
-              <h4>Sopa de Letras - Matemáticas</h4>
-              <p>Completado hace 2 horas</p>
-            </div>
-            <div className="activity-score">95%</div>
-          </div>
-          
-          <div className="activity-item">
-            <div className="activity-icon">🎯</div>
-            <div className="activity-info">
-              <h4>Crucigrama - Historia</h4>
-              <p>Completado ayer</p>
-            </div>
-            <div className="activity-score">88%</div>
-          </div>
-          
-          <div className="activity-item">
-            <div className="activity-icon">🎮</div>
-            <div className="activity-info">
-              <h4>Juego de Palabras - Español</h4>
-              <p>Completado hace 3 días</p>
-            </div>
-            <div className="activity-score">92%</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Dashboard;
+  return <main className="dashboard-page">
+    <header className="dashboard-page__header"><div><span className="dashboard-page__eyebrow">Panel de EduNúñez</span><h1>Hola, {user?.nombre_completo || user?.username || 'bienvenido'}</h1><p>{isStudent ? 'Este es tu resumen de aprendizaje.' : 'Aquí tienes un resumen de la plataforma.'}</p></div><span className="dashboard-page__role">{user?.rol || 'Usuario'}</span></header>
+    {error && <p className="dashboard-page__error" role="alert">{error}</p>}
+    <section className="dashboard-page__metrics" aria-label="Resumen">{loading ? <p role="status">Cargando resumen…</p> : metrics.map((metric) => <StatCard key={metric.label} {...metric}/>)}</section>
+    <section className="dashboard-page__links" aria-labelledby="dashboard-links-title"><h2 id="dashboard-links-title">Accesos directos</h2>{links.length ? <div className="dashboard-page__link-grid">{links.map((item) => <Link className="dashboard-page__link-card" to={item.to} key={item.to}><span aria-hidden="true">{item.icon}</span><div><h3>{item.label}</h3><p>{item.description}</p></div><span className="dashboard-page__arrow" aria-hidden="true">→</span></Link>)}</div> : <EmptyState title="No hay secciones disponibles" description="Tu cuenta no tiene accesos configurados."/>}</section>
+  </main>;
+}

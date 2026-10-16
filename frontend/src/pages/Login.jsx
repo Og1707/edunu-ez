@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import FormField from '../components/ui/FormField';
 import { login } from '../services/auth.service';
@@ -8,17 +8,17 @@ import './Login.css';
 
 /**
  * Login
- * Página de inicio de sesión de EduNúñez.
+ * PÃ¡gina de inicio de sesiÃ³n de EduNÃºÃ±ez.
  *
  * Layout: CSS Grid de 2 columnas.
- *   - Columna izquierda → HeroIllustration (SVG ilustrativo)
- *   - Columna derecha   → Tarjeta glassmorphic con formulario
+ *   - Columna izquierda â†’ HeroIllustration (SVG ilustrativo)
+ *   - Columna derecha   â†’ Tarjeta glassmorphic con formulario
  *
- * Lógica de autenticación preservada íntegramente:
+ * LÃ³gica de autenticaciÃ³n preservada Ã­ntegramente:
  *   - useState: formData, errors, isLoading
- *   - validateForm() con validación de email y contraseña
+ *   - validateForm() con validaciÃ³n de email y contraseÃ±a
  *   - handleSubmit() llama a auth.service.login() y guarda en localStorage
- *   - useNavigate para redirección a /dashboard
+ *   - useNavigate para redirecciÃ³n a /dashboard
  */
 const Login = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const Login = () => {
   const [errors, setErrors]       = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  /* ── Handlers ─────────────────────────────────────────── */
+  /* â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,17 +46,17 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validación de email
+    // ValidaciÃ³n de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = 'El email es requerido';
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Por favor ingresa un email válido';
+      newErrors.email = 'Por favor ingresa un email vÃ¡lido';
     }
 
-    // Validación de contraseña
+    // ValidaciÃ³n de contraseÃ±a
     if (!formData.password) {
-      newErrors.password = 'La contraseña es requerida';
+      newErrors.password = 'La contraseÃ±a es requerida';
     }
 
     setErrors(newErrors);
@@ -74,7 +74,7 @@ const Login = () => {
     try {
       const response = await login(formData);
 
-      // Guardar información del usuario en localStorage
+      // Guardar informaciÃ³n del usuario en localStorage
       localStorage.setItem('user', JSON.stringify(response.data));
 
       // Redirigir al dashboard
@@ -94,27 +94,27 @@ const Login = () => {
     }
   };
 
-  /* ── Render ────────────────────────────────────────────── */
+  /* â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
   return (
     <div className="login-page">
 
-      {/* ── Columna izquierda: ilustración ── */}
+      {/* â”€â”€ Columna izquierda: ilustraciÃ³n â”€â”€ */}
       <div className="login-illustration" aria-hidden="true">
         <HeroIllustration />
       </div>
 
-      {/* ── Columna derecha: formulario glassmorphic ── */}
+      {/* â”€â”€ Columna derecha: formulario glassmorphic â”€â”€ */}
       <div className="login-panel">
         <div className="login-card">
 
           {/* Encabezado */}
           <div className="login-header">
-            <h1>Iniciar Sesión</h1>
-            <p>Bienvenido a EduNúñez!</p>
+            <h1>Iniciar SesiÃ³n</h1>
+            <p>Bienvenido a EduNÃºÃ±ez!</p>
           </div>
 
-          {/* Error general (credenciales incorrectas / servidor caído) */}
+          {/* Error general (credenciales incorrectas / servidor caÃ­do) */}
           {errors.general && (
             <div className="login-error-banner" role="alert">
               {errors.general}
@@ -127,43 +127,45 @@ const Login = () => {
             {/* Campo: Username (email) */}
             <FormField
                 className="form-group"
-                label="Correo Electrónico"
+                label="Correo ElectrÃ³nico"
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 inputClassName={errors.email ? 'input-error' : ''}
-                placeholder="Ingresa tu correo electrónico"
+                placeholder="Ingresa tu correo electrÃ³nico"
                 autoComplete="username"
+                required
                 error={errors.email}
               />
 
             {/* Campo: Password */}
             <div className="form-group">
               <FormField
-                label="Contraseña"
+                label="ContraseÃ±a"
                 type="password"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 inputClassName={errors.password ? 'input-error' : ''}
-                placeholder="Ingresa tu contraseña"
+                placeholder="Ingresa tu contraseÃ±a"
                 autoComplete="current-password"
+                required
                 error={errors.password}
                 />
-              <a href="/magic-link" className="forgot-link">Olvide mi contraseña</a>
+              <Link to="/magic-link" className="forgot-link">Olvidé mi contraseña</Link>
             </div>
 
-            {/* Botón submit */}
+            {/* BotÃ³n submit */}
             <Button
               type="submit"
               className="login-btn"
               isLoading={isLoading}
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in…' : 'INICIAR SESIÓN'}
+              {isLoading ? 'Logging inâ€¦' : 'INICIAR SESIÃ“N'}
             </Button>
           </form>
           {/* Footer */}

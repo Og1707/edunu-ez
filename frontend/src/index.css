@@ -1,4 +1,4 @@
-/* Keep Tailwind utilities available without resetting legacy feature styles. */
+/* Tailwind utilities without a global reset that overrides component styles. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,4 +15,13 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--color-primary-500, #2563eb);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

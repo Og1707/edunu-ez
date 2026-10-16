@@ -1,0 +1,30 @@
+.activity-player { width:min(900px,100%); margin:clamp(1rem,5vh,3rem) auto; padding:clamp(1.25rem,4vw,3rem); border:1px solid var(--color-neutral-200); border-radius:var(--radius-lg); background:white; box-shadow:var(--shadow-md); }
+.activity-player > header,.activity-player > footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.activity-player > header p { font-weight:700; }
+.activity-player__bar { height:.6rem; overflow:hidden; border-radius:99px; background:var(--color-neutral-200); }
+.activity-player__bar span { display:block; height:100%; border-radius:inherit; background:var(--color-primary-600); transition:width 200ms ease; }
+.activity-player__question { margin:2rem 0; }
+.activity-player__eyebrow { color:var(--color-neutral-600); }
+.activity-player__question h1 { margin:1rem 0 1.5rem; font-size:clamp(1.4rem,4vw,2.2rem); }
+.activity-player__question fieldset { display:grid; gap:.75rem; border:0; padding:0; }
+.activity-player__question legend { margin-bottom:.75rem; font-weight:700; }
+.activity-player__question label { display:flex; align-items:center; gap:.75rem; padding:1rem; border:1px solid var(--color-neutral-300); border-radius:var(--radius-md); cursor:pointer; }
+.activity-player__question label.is-selected { border-color:var(--color-primary-600); background:var(--color-primary-50); }
+.activity-player > footer button,.activity-player__result a,.activity-player__message a { min-height:2.75rem; padding:.7rem 1rem; border:0; border-radius:var(--radius-md); color:white; background:var(--color-primary-600); font:inherit; font-weight:700; text-decoration:none; cursor:pointer; }
+.activity-player > footer button:disabled { opacity:.5; cursor:not-allowed; }
+.activity-player__result,.activity-player__message { max-width:800px; margin:3rem auto; padding:2rem; text-align:center; }
+.activity-player__result { border-radius:var(--radius-lg); background:white; box-shadow:var(--shadow-md); }
+.activity-player__result-icon { display:grid; place-items:center; width:4rem; height:4rem; margin:auto; border-radius:50%; color:white; background:var(--color-success-base); font-size:2rem; }
+.activity-player__result > strong { display:block; margin:.5rem; color:var(--color-primary-700); font-size:3rem; }
+.activity-player__message { color:var(--color-neutral-700); }
+.activity-player__error { padding:.75rem; color:#b91c1c; background:var(--color-error-muted); }
+.game-player { min-height:calc(100vh - 56px); display:grid; place-items:center; padding:1.5rem; }
+.game-explorer-page { padding:1rem; }
+.game-explorer-page__header { margin-bottom:1.5rem; }
+.game-explorer-page__grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:1rem; }
+.game-explorer-page__card { padding:1.25rem; border:1px solid var(--color-neutral-200); border-radius:var(--radius-lg); background:white; }
+.game-explorer-page__card > span { font-size:2rem; }
+.game-explorer-page__card h2 { margin:.5rem 0; }
+.game-explorer-page__card button { padding:.65rem 1rem; border:0; border-radius:var(--radius-md); color:white; background:var(--color-primary-600); font:inherit; cursor:pointer; }
+.game-explorer-page__unavailable { color:var(--color-neutral-500); font-size:.9rem; }
+@media(max-width:600px){ .activity-player > header { align-items:flex-start; flex-direction:column; gap:0; } .activity-player > footer { align-items:stretch; flex-direction:column; } }

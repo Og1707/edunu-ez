@@ -77,7 +77,7 @@ export default function AppShell() {
       </aside>
 
       <div className="app-shell__workspace">
-        <header className="app-shell__header">
+        <header className="app-shell__header" aria-label="Cabecera del panel">
           <div className="app-shell__header-user">
             <span className="layout-avatar" aria-hidden="true">{displayName.charAt(0).toUpperCase()}</span>
             <span>{displayName}</span>

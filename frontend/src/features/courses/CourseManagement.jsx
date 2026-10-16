@@ -1,585 +1,92 @@
-import React, { useState, useEffect } from 'react';
-import EmptyState from '../../components/ui/EmptyState';
-import SkeletonLoader from '../../components/ui/SkeletonLoader';
-import axios from '../../utils/axiosConfig';
-import {
-  getCourses,
-  getUsers,
-  createCourse,
-  updateCourse,
-  deleteCourse,
-  getCourseStudents,
-  addStudentToCourse,
-  removeStudentFromCourse,
-} from '../../services/courses.service';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus, Search, Pencil, Trash2, Users, UserPlus, X } from 'lucide-react';
+import ManagementDrawer from '../../components/ui/ManagementDrawer';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { getCourses, createCourse, updateCourse, deleteCourse, getCourseStudents, addStudentToCourse, removeStudentFromCourse } from '../../services/courses.service';
+import { listUsers } from '../../services/users.service';
 import './CourseManagement.css';
 
-const CourseManagement = ({ user }) => {
-  const [cursos, setCursos] = useState([]);
-  const [profesores, setProfesores] = useState([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showStudentsModal, setShowStudentsModal] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [estudiantes, setEstudiantes] = useState([]);
-  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState('');
+const blankCourse = { nombre: '', descripcion: '', profesor: '' };
+const hasTeacher = (course) => Boolean(course.profesor);
 
-  const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: '',
-    profesor: ''
-  });
+export default function CourseManagement({ user }) {
+  const [courses, setCourses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [availableStudents, setAvailableStudents] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+  const [form, setForm] = useState(blankCourse);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [studentsDrawerOpen, setStudentsDrawerOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [assignmentFilter, setAssignmentFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    cargarCursos();
-    if (user.rol === 'administrador') {
-      cargarProfesores();
-    }
+  const loadCourses = useCallback(async () => {
+    setLoading(true);
+    try { const response = await getCourses(); setCourses(Array.isArray(response.data) ? response.data : response.data.cursos || []); setError(''); }
+    catch (_) { setError('No fue posible cargar los cursos.'); }
+    finally { setLoading(false); }
   }, []);
+  useEffect(() => { loadCourses(); if (user?.rol === 'administrador') listUsers().then((r) => setTeachers((r.data.usuarios || r.data || []).filter((item) => item.rol === 'profesor'))).catch(() => {}); }, [loadCourses, user]);
 
-  const cargarCursos = async () => {
-    setIsLoading(true);
+  const visibleCourses = useMemo(() => courses.filter((course) => {
+    const query = search.trim().toLocaleLowerCase();
+    const matchesSearch = !query || `${course.nombre || ''} ${course.descripcion || ''} ${course.profesor_nombre || ''}`.toLocaleLowerCase().includes(query);
+    return matchesSearch && (assignmentFilter === 'all' || (assignmentFilter === 'assigned' ? hasTeacher(course) : !hasTeacher(course)));
+  }), [courses, search, assignmentFilter]);
+  const canManage = (course) => user?.rol === 'administrador' || Number(course.profesor) === Number(user?.usuario_id);
+
+  const openCreate = () => { setSelected(null); setForm(blankCourse); setError(''); setDrawerOpen(true); };
+  const openEdit = (course) => { setSelected(course); setForm({ nombre: course.nombre || '', descripcion: course.descripcion || '', profesor: course.profesor || '' }); setError(''); setDrawerOpen(true); };
+  const setField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+
+  const saveCourse = async (event) => {
+    event.preventDefault(); setSaving(true); setError('');
+    const payload = { ...form, profesor: user.rol === 'profesor' ? user.usuario_id : (form.profesor || null) };
     try {
-      const response = await axios.get('/api/cursos/');
-      setCursos(response.data);
-    } catch (error) {
-      console.error('Error al cargar cursos:', error);
-      setErrors({ general: 'Error al cargar la lista de cursos' });
-    } finally {
-      setIsLoading(false);
-    }
+      if (selected) await updateCourse(selected.id, payload); else await createCourse(payload);
+      setDrawerOpen(false); setSuccess(selected ? 'Curso actualizado.' : 'Curso creado.'); await loadCourses();
+    } catch (e) { setError(e.response?.data?.mensaje || 'No fue posible guardar el curso. Revisa los campos.'); }
+    finally { setSaving(false); }
   };
-
-  const cargarProfesores = async () => {
+  const deleteCourseById = async () => {
+    if (!courseToDelete) return;
+    try { await deleteCourse(courseToDelete.id); setSuccess('Curso eliminado.'); setCourseToDelete(null); await loadCourses(); }
+    catch (_) { setError('No fue posible eliminar el curso.'); setCourseToDelete(null); }
+  };
+  const openStudents = async (course) => {
+    setSelected(course); setStudentsDrawerOpen(true); setError('');
     try {
-      const response = await axios.get('/api/usuarios/listar/');
-      const profesoresList = response.data.filter(u => u.rol === 'profesor');
-      setProfesores(profesoresList);
-    } catch (error) {
-      console.error('Error al cargar profesores:', error);
-    }
+      const [enrolled, users] = await Promise.all([getCourseStudents(course.id), listUsers()]);
+      setStudents(enrolled.data.estudiantes || enrolled.data || []);
+      const enrolledRows = enrolled.data.estudiantes || enrolled.data || [];
+      const enrolledIds = enrolledRows.map((row) => row.id);
+      const userRows = users.data.usuarios || users.data || [];
+      setAvailableStudents(userRows.filter((item) => item.rol === 'estudiante' && !enrolledIds.includes(item.id)));
+    } catch (_) { setError('No se pudo cargar la lista de estudiantes.'); }
   };
+  const addStudent = async (studentId) => { try { await addStudentToCourse({ estudiante_id: studentId, curso_id: selected.id }); await openStudents(selected); } catch (_) { setError('No se pudo agregar el estudiante.'); } };
+  const removeStudent = async (row) => { if (!window.confirm('¿Retirar este estudiante del curso?')) return; try { await removeStudentFromCourse(row.inscripcion_id); await openStudents(selected); } catch (_) { setError('No se pudo retirar el estudiante.'); } };
+  const closeDrawer = useCallback((open) => setDrawerOpen(open), []);
+  const closeStudents = useCallback((open) => setStudentsDrawerOpen(open), []);
 
-  const cargarEstudiantesDisponibles = async () => {
-    try {
-      const response = await axios.get('/api/usuarios/listar/');
-      const estudiantesList = response.data.filter(u => u.rol === 'estudiante');
-      setEstudiantesDisponibles(estudiantesList);
-    } catch (error) {
-      console.error('Error al cargar estudiantes:', error);
-    }
-  };
+  return <section className="course-management">
+    <header className="course-management__header"><div><h2>Gestión de cursos</h2><p>{user?.rol === 'profesor' ? 'Administra tus cursos y estudiantes.' : 'Administra cursos, docentes y estudiantes.'}</p></div><button className="course-management__primary" onClick={openCreate}><Plus size={18} aria-hidden="true"/> Crear curso</button></header>
+    {success && <p className="course-management__notice" role="status">{success}</p>}{error && !drawerOpen && !studentsDrawerOpen && <p className="course-management__error" role="alert">{error}</p>}
+    <div className="course-management__filters"><label className="course-management__search"><Search size={18} aria-hidden="true"/><span className="sr-only">Buscar cursos</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por curso o docente…" /></label><label>Docente<select value={assignmentFilter} onChange={(e) => setAssignmentFilter(e.target.value)}><option value="all">Todos</option><option value="assigned">Con docente</option><option value="unassigned">Sin docente</option></select></label></div>
+    {loading ? <div className="course-management__empty" role="status">Cargando cursos…</div> : visibleCourses.length ? <div className="course-management__table-wrap"><table className="course-management__table"><thead><tr><th>Curso</th><th>Descripción</th><th>Docente</th><th>Estado de asignación</th><th><span className="sr-only">Acciones</span></th></tr></thead><tbody>{visibleCourses.map((course) => <tr key={course.id}><td data-label="Curso">{course.nombre}</td><td data-label="Descripción">{course.descripcion || '—'}</td><td data-label="Docente">{course.profesor_nombre || 'Sin asignar'}</td><td data-label="Estado"><span className={`course-management__status ${hasTeacher(course) ? 'is-active' : 'is-inactive'}`}>{hasTeacher(course) ? 'Con docente' : 'Sin docente'}</span></td><td data-label="Acciones"><div className="course-management__actions">{canManage(course) && <><button type="button" aria-label={`Gestionar estudiantes de ${course.nombre}`} title="Gestionar estudiantes" onClick={() => openStudents(course)}><Users size={17}/></button><button type="button" aria-label={`Editar ${course.nombre}`} title="Editar curso" onClick={() => openEdit(course)}><Pencil size={17}/></button><button type="button" aria-label={`Eliminar ${course.nombre}`} title="Eliminar curso" onClick={() => setCourseToDelete(course)}><Trash2 size={17}/></button></>}</div></td></tr>)}</tbody></table></div> : <div className="course-management__empty">{courses.length ? 'No hay cursos que coincidan con esos filtros.' : 'Aún no hay cursos. Crea el primero para organizar las actividades.'}</div>}
 
-  const cargarEstudiantesCurso = async (cursoId) => {
-    try {
-      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}`);
-      setEstudiantes(response.data.estudiantes);
-    } catch (error) {
-      console.error('Error al cargar estudiantes del curso:', error);
-    }
-  };
-
-  const handleCreateCourse = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      const dataToSend = {
-        ...formData,
-        profesor: user.rol === 'profesor' ? user.usuario_id : formData.profesor
-      };
-
-      const response = await axios.post('/api/cursos/crear/', dataToSend);
-      
-      // Actualizar la lista de cursos con el nuevo curso
-      setCursos(prevCursos => [...prevCursos, response.data]);
-      
-      setSuccessMessage('Curso creado exitosamente');
-      setShowCreateModal(false);
-      setFormData({ nombre: '', descripcion: '', profesor: '' });
-
-    } catch (error) {
-      console.error('Error al crear curso:', error);
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
-      } else {
-        setErrors({ general: 'Error al crear el curso' });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEditCourse = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      const dataToSend = { ...formData };
-
-      const response = await axios.put(`/api/cursos/${selectedCourse.id}/gestionar/`, dataToSend);
-      
-      setSuccessMessage('Curso actualizado exitosamente');
-      setShowEditModal(false);
-      setSelectedCourse(null);
-      cargarCursos();
-
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-    } catch (error) {
-      console.error('Error al actualizar curso:', error);
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
-      } else {
-        setErrors({ general: 'Error al actualizar el curso' });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteCourse = async (cursoId) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este curso? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await axios.delete(`/api/cursos/${cursoId}/gestionar/`);
-      
-      setSuccessMessage('Curso eliminado exitosamente');
-      cargarCursos();
-
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-    } catch (error) {
-      console.error('Error al eliminar curso:', error);
-      setErrors({ general: 'Error al eliminar el curso' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAddStudentToCourse = async (estudianteId) => {
-    try {
-      const dataToSend = {
-        estudiante_id: estudianteId,
-        curso_id: selectedCourse.id,
-      };
-
-      await axios.post('/api/estudiantes-curso/agregar/', dataToSend);
-      
-      setSuccessMessage('Estudiante agregado al curso exitosamente');
-      cargarEstudiantesCurso(selectedCourse.id);
-      cargarEstudiantesDisponibles();
-
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-    } catch (error) {
-      console.error('Error al agregar estudiante:', error);
-      if (error.response && error.response.data) {
-        setErrors({ general: error.response.data.mensaje });
-      } else {
-        setErrors({ general: 'Error al agregar estudiante al curso' });
-      }
-    }
-  };
-
-  const handleRemoveStudentFromCourse = async (inscripcionId) => {
-    if (!window.confirm('¿Estás seguro de que deseas remover este estudiante del curso?')) {
-      return;
-    }
-
-    try {
-      await axios.delete(`/api/estudiantes-curso/${inscripcionId}/remover/`);
-      
-      setSuccessMessage('Estudiante removido del curso exitosamente');
-      cargarEstudiantesCurso(selectedCourse.id);
-      cargarEstudiantesDisponibles();
-
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-    } catch (error) {
-      console.error('Error al remover estudiante:', error);
-      setErrors({ general: 'Error al remover estudiante del curso' });
-    }
-  };
-
-  const openCreateModal = () => {
-    setFormData({ nombre: '', descripcion: '', profesor: '' });
-    setErrors({});
-    setShowCreateModal(true);
-  };
-
-  const openEditModal = (curso) => {
-    setSelectedCourse(curso);
-    setFormData({
-      nombre: curso.nombre,
-      descripcion: curso.descripcion,
-      profesor: curso.profesor || ''
-    });
-    setErrors({});
-    setShowEditModal(true);
-  };
-
-  const openStudentsModal = (curso) => {
-    setSelectedCourse(curso);
-    cargarEstudiantesCurso(curso.id);
-    cargarEstudiantesDisponibles();
-    setShowStudentsModal(true);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const canEditCourse = (curso) => {
-    if (user.rol === 'administrador') return true;
-    if (user.rol === 'profesor' && curso.profesor === user.usuario_id) return true;
-    return false;
-  };
-
-  const canDeleteCourse = (curso) => {
-    if (user.rol === 'administrador') return true;
-    if (user.rol === 'profesor' && curso.profesor === user.usuario_id) return true;
-    return false;
-  };
-
-  const canManageStudents = (curso) => {
-    if (user.rol === 'administrador') return true;
-    if (user.rol === 'profesor' && curso.profesor === user.usuario_id) return true;
-    return false;
-  };
-
-  // Filtrar estudiantes disponibles (que no estén ya en el curso)
-  const getEstudiantesDisponiblesParaCurso = () => {
-    const estudiantesEnCurso = estudiantes.map(e => e.estudiante.id);
-    return estudiantesDisponibles.filter(e => !estudiantesEnCurso.includes(e.id));
-  };
-
-  return (
-    <div className="course-management">
-      <div className="management-header">
-        <div>
-          <h2>Gestión de Cursos</h2>
-          <p>
-            {user.rol === 'profesor' 
-              ? 'Como profesor, puedes gestionar tus cursos asignados' 
-              : 'Como administrador, puedes gestionar todos los cursos'
-            }
-          </p>
-        </div>
-        <button className="create-course-btn" onClick={openCreateModal}>
-          <span className="btn-icon">📚➕</span>
-          Crear Curso
-        </button>
-      </div>
-
-      {successMessage && (
-        <div className="success-message">
-          {successMessage}
-        </div>
-      )}
-
-      {errors.general && (
-        <div className="error-message">
-          {errors.general}
-        </div>
-      )}
-
-      {isLoading ? (
-        <SkeletonLoader count={3} label="Cargando cursos" />
-      ) : (
-        <div className="courses-grid">
-          {cursos.map(curso => (
-            <div key={curso.id} className="course-card">
-              <div className="course-header">
-                <h3>{curso.nombre}</h3>
-                <div className="course-actions">
-                  {canManageStudents(curso) && (
-                    <button 
-                      className="students-btn"
-                      onClick={() => openStudentsModal(curso)}
-                      title="Gestionar estudiantes"
-                    >
-                      👥
-                    </button>
-                  )}
-                  {canEditCourse(curso) && (
-                    <button 
-                      className="edit-btn"
-                      onClick={() => openEditModal(curso)}
-                      title="Editar curso"
-                    >
-                      ✏️
-                    </button>
-                  )}
-                  {canDeleteCourse(curso) && (
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDeleteCourse(curso.id)}
-                      title="Eliminar curso"
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="course-content">
-                <p className="course-description">{curso.descripcion}</p>
-                
-                <div className="course-info">
-                  <div className="info-item">
-                    <span className="info-label">Profesor:</span>
-                    <span className="info-value">
-                      {curso.profesor_nombre || 'Sin asignar'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {cursos.length === 0 && (
-            <EmptyState
-              icon="📚"
-              title="Aún no hay cursos"
-              description="Crea un curso para organizar las actividades de tus estudiantes."
-              action={(
-                <button className="create-course-btn" onClick={openCreateModal}>
-                  Crear primer curso
-                </button>
-              )}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Modal Crear Curso */}
-      {showCreateModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Crear Nuevo Curso</h3>
-              <button className="close-btn" onClick={() => setShowCreateModal(false)}>✕</button>
-            </div>
-
-            <form onSubmit={handleCreateCourse} className="course-form">
-              <div className="form-group">
-                <label>Nombre del Curso *</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  required
-                  className={errors.nombre ? 'error' : ''}
-                  placeholder="Ej: Matemáticas Básicas"
-                />
-                {errors.nombre && <span className="error-text">{errors.nombre}</span>}
-              </div>
-
-              <div className="form-group">
-                <label>Descripción *</label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  required
-                  className={errors.descripcion ? 'error' : ''}
-                  placeholder="Describe el contenido y objetivos del curso..."
-                  rows="4"
-                />
-                {errors.descripcion && <span className="error-text">{errors.descripcion}</span>}
-              </div>
-
-              {user.rol === 'administrador' && (
-                <div className="form-group">
-                  <label>Profesor Asignado</label>
-                  <select
-                    name="profesor"
-                    value={formData.profesor}
-                    onChange={handleChange}
-                    className={errors.profesor ? 'error' : ''}
-                  >
-                    <option value="">Seleccionar profesor (opcional)</option>
-                    {profesores.map(profesor => (
-                      <option key={profesor.id} value={profesor.id}>
-                        {profesor.nombre_completo} ({profesor.username})
-                      </option>
-                    ))}
-                  </select>
-                  {errors.profesor && <span className="error-text">{errors.profesor}</span>}
-                </div>
-              )}
-
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowCreateModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="submit-btn" disabled={isLoading}>
-                  {isLoading ? 'Creando...' : 'Crear Curso'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Editar Curso */}
-      {showEditModal && selectedCourse && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Editar Curso: {selectedCourse.nombre}</h3>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>✕</button>
-            </div>
-
-            <form onSubmit={handleEditCourse} className="course-form">
-              <div className="form-group">
-                <label>Nombre del Curso *</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  required
-                  className={errors.nombre ? 'error' : ''}
-                />
-                {errors.nombre && <span className="error-text">{errors.nombre}</span>}
-              </div>
-
-              <div className="form-group">
-                <label>Descripción *</label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  required
-                  className={errors.descripcion ? 'error' : ''}
-                  rows="4"
-                />
-                {errors.descripcion && <span className="error-text">{errors.descripcion}</span>}
-              </div>
-
-              {user.rol === 'administrador' && (
-                <div className="form-group">
-                  <label>Profesor Asignado</label>
-                  <select
-                    name="profesor"
-                    value={formData.profesor}
-                    onChange={handleChange}
-                    className={errors.profesor ? 'error' : ''}
-                  >
-                    <option value="">Sin profesor asignado</option>
-                    {profesores.map(profesor => (
-                      <option key={profesor.id} value={profesor.id}>
-                        {profesor.nombre_completo} ({profesor.username})
-                      </option>
-                    ))}
-                  </select>
-                  {errors.profesor && <span className="error-text">{errors.profesor}</span>}
-                </div>
-              )}
-
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowEditModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="submit-btn" disabled={isLoading}>
-                  {isLoading ? 'Actualizando...' : 'Actualizar Curso'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Gestionar Estudiantes */}
-      {showStudentsModal && selectedCourse && (
-        <div className="modal-overlay">
-          <div className="modal-content large">
-            <div className="modal-header">
-              <h3>Estudiantes en: {selectedCourse.nombre}</h3>
-              <button className="close-btn" onClick={() => setShowStudentsModal(false)}>✕</button>
-            </div>
-
-            <div className="students-management">
-              <div className="students-section">
-                <h4>Estudiantes Inscritos ({estudiantes.length})</h4>
-                <div className="students-list">
-                  {estudiantes.map(inscripcion => (
-                    <div key={inscripcion.id} className="student-item">
-                      <div className="student-info">
-                        <span className="student-avatar">👨‍🎓</span>
-                        <div>
-                          <div className="student-name">{inscripcion.estudiante.nombre_completo}</div>
-                          <div className="student-username">@{inscripcion.estudiante.username}</div>
-                        </div>
-                      </div>
-                      <button 
-                        className="remove-btn"
-                        onClick={() => handleRemoveStudentFromCourse(inscripcion.id)}
-                        title="Remover del curso"
-                      >
-                        ❌
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {estudiantes.length === 0 && (
-                    <div className="empty-students">
-                      <p>No hay estudiantes inscritos en este curso</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="available-students-section">
-                <h4>Agregar Estudiantes</h4>
-                <div className="available-students-list">
-                  {getEstudiantesDisponiblesParaCurso().map(estudiante => (
-                    <div key={estudiante.id} className="available-student-item">
-                      <div className="student-info">
-                        <span className="student-avatar">👨‍🎓</span>
-                        <div>
-                          <div className="student-name">{estudiante.nombre_completo}</div>
-                          <div className="student-username">@{estudiante.username}</div>
-                        </div>
-                      </div>
-                      <button 
-                        className="add-btn"
-                        onClick={() => handleAddStudentToCourse(estudiante.id)}
-                        title="Agregar al curso"
-                      >
-                        ➕
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {getEstudiantesDisponiblesParaCurso().length === 0 && (
-                    <div className="empty-students">
-                      <p>No hay más estudiantes disponibles para agregar</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default CourseManagement;
+    <ManagementDrawer open={drawerOpen} onOpenChange={closeDrawer} title={selected ? 'Editar curso' : 'Crear curso'} description="Completa la información del curso." footer={<div className="course-management__form-actions"><button type="button" onClick={() => setDrawerOpen(false)}>Cancelar</button><button type="submit" form="course-form" disabled={saving}>{saving ? 'Guardando…' : selected ? 'Guardar cambios' : 'Crear curso'}</button></div>}>
+      {error && <p className="course-management__error" role="alert">{error}</p>}<form id="course-form" onSubmit={saveCourse} className="course-management__form"><label>Nombre del curso<input name="nombre" required value={form.nombre} onChange={setField} /></label><label>Descripción<textarea name="descripcion" required rows="4" value={form.descripcion} onChange={setField}/></label>{user?.rol === 'administrador' && <label>Docente<select name="profesor" value={form.profesor} onChange={setField}><option value="">Sin asignar</option>{teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.nombre_completo || teacher.username}</option>)}</select></label>}</form>
+    </ManagementDrawer>
+    <ManagementDrawer open={studentsDrawerOpen} onOpenChange={closeStudents} title={`Estudiantes · ${selected?.nombre || ''}`} description="Agrega o retira estudiantes inscritos en este curso." size="wide">
+      {error && <p className="course-management__error" role="alert">{error}</p>}<h3>Inscritos ({students.length})</h3>{students.length ? students.map((row) => <div className="course-management__student" key={row.inscripcion_id}><span>{row.nombre_completo || row.username}</span><button type="button" aria-label={`Retirar ${row.nombre_completo || row.username}`} onClick={() => removeStudent(row)}><X size={17}/></button></div>) : <p>Aún no hay estudiantes inscritos.</p>}<h3>Agregar estudiante</h3>{availableStudents.map((student) => <div className="course-management__student" key={student.id}><span>{student.nombre_completo || student.username}</span><button type="button" aria-label={`Agregar ${student.nombre_completo || student.username}`} onClick={() => addStudent(student.id)}><UserPlus size={17}/></button></div>)}{!availableStudents.length && <p>No hay estudiantes disponibles para agregar.</p>}
+    </ManagementDrawer>
+    <ConfirmDialog open={Boolean(courseToDelete)} title="Eliminar curso" description={`¿Eliminar el curso “${courseToDelete?.nombre || ''}”? Esta acción no se puede deshacer.`} onOpenChange={(open) => { if (!open) setCourseToDelete(null); }} onConfirm={deleteCourseById} />
+  </section>;
+}

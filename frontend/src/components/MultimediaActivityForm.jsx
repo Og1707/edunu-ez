@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getCourses, createMultimediaActivity, getCloudinarySignature } from '../services/activities.service';
-import { previewMultimediaTemplate } from '../services/activities.service';
+import { createMultimediaActivity } from '../services/activities.service';
+import { getCourses } from '../services/courses.service';
 import QuestionForm from './QuestionForm';
 import './MultimediaActivityForm.css';
 
@@ -8,7 +8,10 @@ const MultimediaActivityForm = ({
   curso, 
   onActivityCreated, 
   onCancel,
-  initialData = {} 
+  initialData = {},
+  onDraftChange,
+  deferSubmit = false,
+  submitLabel
 }) => {
   const [formData, setFormData] = useState({
     titulo: initialData.titulo || '',
@@ -22,18 +25,19 @@ const MultimediaActivityForm = ({
   const [cursos, setCursos] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [preview, setPreview] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    onDraftChange?.({ ...formData, archivo_multimedia: selectedFile });
+  }, [formData, selectedFile, onDraftChange]);
+
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
 
   useEffect(() => {
     loadCourses();
   }, []);
 
   useEffect(() => {
-    if (formData.curso) {
-      setFormData(prev => ({ ...prev, curso: formData.curso }));
-    }
+    if (curso) setFormData((prev) => ({ ...prev, curso: curso.id || curso }));
   }, [curso]);
 
   const loadCourses = async () => {
@@ -64,10 +68,11 @@ const MultimediaActivityForm = ({
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validar tipo de archivo
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov', 'audio/mp3', 'audio/wav'];
-      if (!validTypes.includes(file.type)) {
-        setErrors(prev => ({ ...prev, archivo: 'Tipo de archivo no válido' }));
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      const validExtensions = new Set(['mp4', 'avi', 'mov', 'flv', 'wmv', 'webm', 'mkv', 'mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
+      if (!validExtensions.has(extension)) {
+        setErrors(prev => ({ ...prev, archivo: 'Formato no admitido. Usa imagen, video o audio compatible.' }));
+        e.target.value = '';
         return;
       }
 
@@ -75,6 +80,7 @@ const MultimediaActivityForm = ({
       const maxSize = 100 * 1024 * 1024; // 100MB
       if (file.size > maxSize) {
         setErrors(prev => ({ ...prev, archivo: 'El archivo no puede superar los 100MB' }));
+        e.target.value = '';
         return;
       }
 
@@ -225,32 +231,6 @@ const MultimediaActivityForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handlePreview = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      const previewData = {
-        titulo: formData.titulo,
-        descripcion: formData.descripcion,
-        preguntas: JSON.stringify(formData.preguntas)
-      };
-
-      const response = await previewMultimediaTemplate(previewData);
-      
-      if (response.data.valido) {
-        setPreview(response.data);
-        setShowPreview(true);
-      } else {
-        setErrors(prev => ({ ...prev, preview: 'Estructura inválida' }));
-      }
-    } catch (err) {
-      console.error('Error en preview:', err);
-      setErrors(prev => ({ ...prev, preview: 'Error al generar preview' }));
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -269,6 +249,11 @@ const MultimediaActivityForm = ({
       formDataToSend.append('curso', formData.curso);
       formDataToSend.append('preguntas', JSON.stringify(formData.preguntas));
       formDataToSend.append('archivo_multimedia', selectedFile);
+
+      if (deferSubmit) {
+        onActivityCreated?.(formDataToSend);
+        return;
+      }
 
       const response = await createMultimediaActivity(formDataToSend);
       
@@ -363,7 +348,7 @@ const MultimediaActivityForm = ({
             <input
               type="file"
               id="archivo_multimedia"
-              accept="image/*,video/*,audio/*"
+              accept=".mp4,.avi,.mov,.flv,.wmv,.webm,.mkv,.mp3,.wav,.aac,.flac,.ogg,.m4a,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg"
               onChange={handleFileChange}
               className="file-input"
             />
@@ -380,7 +365,7 @@ const MultimediaActivityForm = ({
             {previewUrl && (
               <div className="file-preview">
                 {selectedFile.type.startsWith('image/') ? (
-                  <img src={previewUrl} alt="Preview" className="preview-image" />
+                  <img src={previewUrl} alt={`Vista previa de ${selectedFile.name}`} className="preview-image" />
                 ) : selectedFile.type.startsWith('video/') ? (
                   <video src={previewUrl} className="preview-video" controls />
                 ) : (
@@ -394,6 +379,7 @@ const MultimediaActivityForm = ({
                     onClick={() => {
                       setSelectedFile(null);
                       setPreviewUrl('');
+                      document.getElementById('archivo_multimedia').value = '';
                     }}
                     className="remove-file"
                   >
@@ -444,49 +430,6 @@ const MultimediaActivityForm = ({
           </div>
         </div>
 
-        {/* Preview */}
-        <div className="form-section">
-          <div className="section-header">
-            <h4>Preview</h4>
-            <button
-              type="button"
-              onClick={handlePreview}
-              className="preview-btn"
-              disabled={isSubmitting}
-            >
-              Generar preview
-            </button>
-          </div>
-          
-          {errors.preview && <span className="error-message">{errors.preview}</span>}
-          
-          {showPreview && preview && (
-            <div className="preview-container">
-              <div className="preview-header">
-                <h5>Preview de la actividad</h5>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(false)}
-                  className="close-preview"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="preview-content">
-                <p><strong>Título:</strong> {preview.preview.titulo}</p>
-                <p><strong>Descripción:</strong> {preview.preview.descripcion}</p>
-                <p><strong>Preguntas:</strong> {preview.preguntas_count}</p>
-                <p><strong>Opciones totales:</strong> {preview.opciones_total}</p>
-                <p className="preview-status">
-                  <span className={`status-badge ${preview.valido ? 'valid' : 'invalid'}`}>
-                    {preview.valido ? '✓ Estructura válida' : '✗ Estructura inválida'}
-                  </span>
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Botones de acción */}
         <div className="form-actions">
           <button
@@ -502,7 +445,7 @@ const MultimediaActivityForm = ({
             className="btn btn-primary"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Creando...' : 'Crear actividad'}
+            {isSubmitting ? 'Creando...' : (submitLabel || 'Crear actividad')}
           </button>
         </div>
         

@@ -115,10 +115,13 @@ def listar_estudiantes_curso(request):
 
     try:
         curso = Curso.objects.get(id=curso_id)
+        if request.user.rol == 'profesor' and curso.profesor_id != request.user.id:
+            return Response({'mensaje': 'Solo puedes consultar estudiantes de tus cursos'}, status=status.HTTP_403_FORBIDDEN)
         estudiantes_curso = EstudianteCurso.objects.filter(curso=curso).select_related('estudiante')
 
         estudiantes_data = [
             {
+                'inscripcion_id': ec.id,
                 'id': ec.estudiante.id,
                 'username': ec.estudiante.username,
                 'nombre_completo': ec.estudiante.nombre_completo,

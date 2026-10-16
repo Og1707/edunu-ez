@@ -11,40 +11,47 @@ export default function FocusLayout({
   onExit,
 }) {
   const [confirmExit, setConfirmExit] = useState(false);
+  const [childFocus, setChildFocus] = useState({ progress: 0, status: 'Actividad en curso', score: null, remainingTime: null, backLabel: 'Volver', exitPath: null, exitTitle: '¿Salir de la actividad?', exitDescription: 'Tu progreso podría no guardarse si sales ahora.' });
   const navigate = useNavigate();
+  const shownProgress = progress ?? childFocus.progress;
+  const shownStatus = status !== 'Actividad en curso' ? status : childFocus.status;
+  const shownScore = score ?? childFocus.score;
+  const shownRemainingTime = remainingTime ?? childFocus.remainingTime;
 
   const leave = () => {
     setConfirmExit(false);
     if (onExit) onExit();
+    else if (childFocus.exitPath) navigate(childFocus.exitPath);
     else navigate(-1);
   };
+  const requestExit = () => setConfirmExit(true);
 
   return (
     <div className="focus-layout">
       <header className="focus-layout__header">
-        <button className="focus-layout__back" type="button" onClick={() => setConfirmExit(true)}>
+        <button className="focus-layout__back" type="button" onClick={requestExit}>
           <ArrowLeft size={18} aria-hidden="true" />
-          <span>Volver</span>
+          <span>{childFocus.backLabel}</span>
         </button>
-        <div className="focus-layout__progress" aria-label={`Progreso: ${progress ?? 0}%`}>
-          <span>{status}</span>
-          <div className="focus-layout__progress-track" role="progressbar" aria-valuenow={progress ?? 0} aria-valuemin="0" aria-valuemax="100">
-            <span style={{ width: `${Math.min(100, Math.max(0, progress ?? 0))}%` }} />
+        <div className="focus-layout__progress" aria-label={`Progreso: ${shownProgress}%`}>
+          <span>{shownStatus}</span>
+          <div className="focus-layout__progress-track" role="progressbar" aria-valuenow={shownProgress} aria-valuemin="0" aria-valuemax="100">
+            <span style={{ width: `${Math.min(100, Math.max(0, shownProgress))}%` }} />
           </div>
         </div>
         <div className="focus-layout__meta" aria-live="polite">
-          {remainingTime != null && <span>{remainingTime}</span>}
-          {score != null && <span>{score} puntos</span>}
-          {remainingTime == null && score == null && <span>En curso</span>}
+          {shownRemainingTime != null && <span>{shownRemainingTime}</span>}
+          {shownScore != null && <span>{shownScore} puntos</span>}
+          {shownRemainingTime == null && shownScore == null && <span>En curso</span>}
         </div>
       </header>
-      <main className="focus-layout__content"><Outlet /></main>
+      <main className="focus-layout__content"><Outlet context={{ setFocus: setChildFocus, requestExit }} /></main>
 
       {confirmExit && (
         <div className="focus-confirm__backdrop">
           <section className="focus-confirm" role="alertdialog" aria-modal="true" aria-labelledby="focus-confirm-title" aria-describedby="focus-confirm-description">
-            <h2 id="focus-confirm-title">¿Salir de la actividad?</h2>
-            <p id="focus-confirm-description">Tu progreso podría no guardarse si sales ahora.</p>
+            <h2 id="focus-confirm-title">{childFocus.exitTitle}</h2>
+            <p id="focus-confirm-description">{childFocus.exitDescription}</p>
             <div className="focus-confirm__actions">
               <button type="button" className="focus-confirm__cancel" onClick={() => setConfirmExit(false)}>Seguir aquí</button>
               <button type="button" className="focus-confirm__leave" onClick={leave}>Salir</button>

@@ -7,6 +7,11 @@ import RoleBasedActivityPage from './components/layout/RoleBasedActivityPage';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleBasedLayout from './components/layout/RoleBasedLayout';
 import Dashboard from './pages/Dashboard';
+import StudentProgressPage from './pages/StudentProgressPage';
+import ActivityBuilderPage from './pages/ActivityBuilderPage';
+import ActivityPlayerPage from './pages/ActivityPlayerPage';
+import GamePlayerPage from './pages/GamePlayerPage';
+import FocusLayout from './components/layout/FocusLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import MagicLink from './pages/MagicLink';
@@ -27,10 +32,7 @@ function CourseManagementPage() {
   return <CourseManagement user={user} />;
 }
 
-function GameExplorerPage() {
-  const { user } = useAuth();
-  return <GameExplorer user={user} />;
-}
+function GameExplorerPage() { return <GameExplorer />; }
 
 function App() {
   return (
@@ -43,10 +45,22 @@ function App() {
           <Route path="/magic-link" element={<MagicLink />} />
           <Route path="/verify" element={<VerifyMagicLink />} />
 
+          <Route element={<ProtectedRoute allowedRoles={STAFF_ROLES} />}>
+            <Route path="/activities/create" element={<ActivityBuilderPage />} />
+          </Route>
+          <Route element={<ProtectedRoute allowedRoles={['estudiante']}><FocusLayout /></ProtectedRoute>}>
+            <Route path="/activities/:id/play" element={<ActivityPlayerPage />} />
+            <Route path="/games/:id/play" element={<GamePlayerPage />} />
+          </Route>
+
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES}><RoleBasedLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/activities" element={<RoleBasedActivityPage />} />
             <Route path="/games" element={<GameExplorerPage />} />
+
+            <Route element={<ProtectedRoute allowedRoles={['estudiante']} />}>
+              <Route path="/progress" element={<StudentProgressPage />} />
+            </Route>
 
             <Route element={<ProtectedRoute allowedRoles={STAFF_ROLES} />}>
               <Route path="/courses" element={<CourseManagementPage />} />

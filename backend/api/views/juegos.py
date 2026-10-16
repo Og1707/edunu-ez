@@ -81,6 +81,8 @@ def iniciar_partida_juego(request):
 
 
 @api_view(['POST'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def finalizar_partida_juego(request):
     """Finalizar una partida y guardar resultados recalculando promedios atómicamente."""
     partida_id = request.data.get('partida_id')
@@ -96,7 +98,8 @@ def finalizar_partida_juego(request):
         aciertos=aciertos,
         errores=errores,
         tiempo_jugado=tiempo_jugado,
-        datos_partida=datos_partida
+        datos_partida=datos_partida,
+        estudiante=request.user,
     )
 
     return Response({

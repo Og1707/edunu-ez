@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axiosConfig';
 import { register } from '../services/auth.service';
 import './Register.css';
 
@@ -12,7 +11,6 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     nombre_completo: '',
-    rol: 'estudiante'
   });
 
   const [errors, setErrors] = useState({});
@@ -91,11 +89,7 @@ const Register = () => {
       // Preparar datos para enviar (sin confirmPassword)
       const { confirmPassword, ...dataToSend } = formData;
       
-      const response = await axios.post('/api/registro/', dataToSend, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      await register(dataToSend);
 
       setSuccessMessage('¡Usuario registrado exitosamente! Redirigiendo al login...');
       setFormData({
@@ -104,7 +98,6 @@ const Register = () => {
         password: '',
         confirmPassword: '',
         nombre_completo: '',
-        rol: 'estudiante'
       });
       
       // Redirigir al login después de 2 segundos
@@ -136,13 +129,13 @@ const Register = () => {
         </div>
 
         {successMessage && (
-          <div className="success-message">
+          <div className="success-message" role="status" aria-live="polite">
             {successMessage}
           </div>
         )}
 
         {errors.general && (
-          <div className="error-message">
+          <div className="error-message" role="alert">
             {errors.general}
           </div>
         )}
@@ -156,11 +149,14 @@ const Register = () => {
               name="nombre_completo"
               value={formData.nombre_completo}
               onChange={handleChange}
+              required
+              aria-invalid={Boolean(errors.nombre_completo)}
+              aria-describedby={errors.nombre_completo ? 'nombre_completo-error' : undefined}
               className={errors.nombre_completo ? 'error' : ''}
               placeholder="Ingresa tu nombre completo"
             />
             {errors.nombre_completo && (
-              <span className="error-text">{errors.nombre_completo}</span>
+              <span id="nombre_completo-error" className="error-text" role="alert">{errors.nombre_completo}</span>
             )}
           </div>
 
@@ -172,11 +168,14 @@ const Register = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
+              required
+              aria-invalid={Boolean(errors.username)}
+              aria-describedby={errors.username ? 'username-error' : undefined}
               className={errors.username ? 'error' : ''}
               placeholder="Elige un nombre de usuario"
             />
             {errors.username && (
-              <span className="error-text">{errors.username}</span>
+              <span id="username-error" className="error-text" role="alert">{errors.username}</span>
             )}
           </div>
 
@@ -188,29 +187,14 @@ const Register = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              required
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'email-error' : undefined}
               className={errors.email ? 'error' : ''}
               placeholder="tu@email.com"
             />
             {errors.email && (
-              <span className="error-text">{errors.email}</span>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="rol">Tipo de Usuario</label>
-            <select
-              id="rol"
-              name="rol"
-              value={formData.rol}
-              onChange={handleChange}
-              className={errors.rol ? 'error' : ''}
-            >
-              <option value="estudiante">Estudiante</option>
-              <option value="profesor">Profesor</option>
-              <option value="administrador">Administrador</option>
-            </select>
-            {errors.rol && (
-              <span className="error-text">{errors.rol}</span>
+              <span id="email-error" className="error-text" role="alert">{errors.email}</span>
             )}
           </div>
 
@@ -222,11 +206,14 @@ const Register = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              required
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? 'password-error' : undefined}
               className={errors.password ? 'error' : ''}
               placeholder="Mínimo 6 caracteres"
             />
             {errors.password && (
-              <span className="error-text">{errors.password}</span>
+              <span id="password-error" className="error-text" role="alert">{errors.password}</span>
             )}
           </div>
 
@@ -238,11 +225,14 @@ const Register = () => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              required
+              aria-invalid={Boolean(errors.confirmPassword)}
+              aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
               className={errors.confirmPassword ? 'error' : ''}
               placeholder="Repite tu contraseña"
             />
             {errors.confirmPassword && (
-              <span className="error-text">{errors.confirmPassword}</span>
+              <span id="confirmPassword-error" className="error-text" role="alert">{errors.confirmPassword}</span>
             )}
           </div>
 

@@ -1,753 +1,96 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ClipboardList, Pencil, Plus, Search, Send, Trash2 } from 'lucide-react';
+import ManagementDrawer from '../../components/ui/ManagementDrawer';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import EmptyState from '../../components/ui/EmptyState';
-import SkeletonLoader from '../../components/ui/SkeletonLoader';
-import axios from '../../utils/axiosConfig';
-import {
-  getCourseStudents,
-  assignActivityToCourse,
-  addStudentToCourse,
-  getTeacherActivities,
-  getCourses,
-  getActivityTypes,
-  updateActivity,
-  deleteActivity,
-} from '../../services/activities.service';
+import { assignActivityToCourse, deleteActivity, getActivities, getActivityTypes, getTeacherActivities, updateActivity } from '../../services/activities.service';
+import { getCourses } from '../../services/courses.service';
 import './ActivityManagement.css';
 
-const ActivityManagement = ({ user, onAddActivity }) => {
-  const [actividades, setActividades] = useState([]);
-  const [cursos, setCursos] = useState([]);
-  const [tiposActividad, setTiposActividad] = useState([]);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState('');
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedActivityForAssign, setSelectedActivityForAssign] = useState(null);
-  const [estudiantes, setEstudiantes] = useState([]);
-  const [selectedEstudiantes, setSelectedEstudiantes] = useState([]);
-  const [assignToAll, setAssignToAll] = useState(false);
-  const [filtros, setFiltros] = useState({
-    curso: '',
-    tipo: '',
-    busqueda: ''
-  });
+const emptyForm = { titulo: '', descripcion: '', curso: '', tipo: 'otro', estado: 'pendiente', fecha_limite: '' };
 
-  const [formData, setFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    tipo: 'otro',
-    curso: '',
-    fecha_limite: '',
-    estado: 'pendiente',
-    recurso: null
-  });
+export default function ActivityManagement({ user }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activities, setActivities] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [search, setSearch] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const cargarEstudiantesCurso = async (cursoId) => {
+  const load = useCallback(async () => {
+    setLoading(true);
     try {
-      console.log('Cargando estudiantes del curso:', cursoId);
-      const response = await axios.get(`/api/estudiantes-curso/?curso_id=${cursoId}`);
-      console.log('Estudiantes cargados:', response.data.length);
-      setEstudiantes(response.data);
-    } catch (error) {
-      console.error('Error al cargar estudiantes:', error);
-      setErrors({ estudiantes: 'Error al cargar estudiantes del curso' });
-    }
-  };
-
-  const openAssignModal = (actividad) => {
-    setSelectedActivityForAssign(actividad);
-    cargarEstudiantesCurso(actividad.curso);
-    setSelectedEstudiantes([]);
-    setAssignToAll(false);
-    setShowAssignModal(true);
-  };
-
-  const handleAssignActivity = async () => {
-    if (!selectedActivityForAssign || !selectedActivityForAssign.id) {
-      setErrors({ general: "Debes seleccionar una actividad válida para asignar." });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      const requestData = {
-        curso_id: selectedActivityForAssign.curso,
-        actividad_ids: [selectedActivityForAssign.id],
-      };
-
-      console.log('Enviando datos de asignación:', requestData);
-
-      if (assignToAll) {
-        if (estudiantes.length === 0) {
-          throw new Error('No hay estudiantes matriculados en este curso. Primero debes agregar estudiantes al curso.');
-        }
-        const response = await axios.post('/api/asignar-actividad-curso/', requestData);
-        console.log('Respuesta de asignación exitosa:', response.data);
-      } else if (selectedEstudiantes.length > 0) {
-        for (const estudiante of selectedEstudiantes) {
-          const estudianteData = {
-            estudiante_id: estudiante.estudiante.id,
-            curso_id: selectedActivityForAssign.curso,
-          };
-          console.log('Asignando a estudiante específico:', estudianteData);
-          await axios.post('/api/estudiantes-curso/agregar/', estudianteData);
-        }
-      }
-
-      setSuccessMessage('Actividad asignada exitosamente');
-      setShowAssignModal(false);
-      setSelectedActivityForAssign(null);
-
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-      // Recargar datos para mostrar las asignaciones actualizadas
-      cargarDatos();
-
-    } catch (error) {
-      console.error('Error al asignar actividad:', error);
-      console.error('Response status:', error.response?.status);
-      console.error('Response data:', error.response?.data);
-
-      // Mostrar mensaje de error personalizado para estudiantes faltantes
-      if (error.message && error.message.includes('No hay estudiantes matriculados')) {
-        setErrors({ general: error.message });
-      } else if (error.response && error.response.data) {
-        setErrors({ general: `Error: ${error.response.data.mensaje || 'Error desconocido'}` });
-      } else {
-        setErrors({ general: error.message || 'Error al asignar la actividad' });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const cargarDatos = async () => {
-    setIsLoading(true);
-    setErrors({});
-    try {
-      console.log('Iniciando carga de datos para profesor:', user.usuario_id);
-
-      // Cargar datos de manera secuencial para mejor manejo de errores
-      const actividadesResponse = await axios.get('/api/actividades/profesor/');
-      console.log('Actividades cargadas:', actividadesResponse.data.length);
-
-      const cursosResponse = await axios.get('/api/cursos/');
-      console.log('Cursos cargados:', cursosResponse.data.length);
-
-      const tiposResponse = await axios.get('/api/tipos-actividad/');
-      console.log('Tipos cargados:', tiposResponse.data.length);
-
-      setActividades(actividadesResponse.data);
-      setCursos(cursosResponse.data);
-      setTiposActividad(tiposResponse.data);
-
-      console.log('Datos cargados exitosamente');
-
-    } catch (error) {
-      console.error('Error detallado al cargar datos:', error);
-      console.error('Response status:', error.response?.status);
-      console.error('Response data:', error.response?.data);
-
-      if (error.response) {
-        // Error de respuesta del servidor
-        if (error.response.status === 403) {
-          setErrors({ general: 'No tienes permisos para ver las actividades. Verifica que seas profesor de algún curso.' });
-        } else if (error.response.status === 404) {
-          setErrors({ general: 'No se encontraron actividades. Crea tu primera actividad.' });
-        } else {
-          setErrors({ general: `Error del servidor: ${error.response.data?.mensaje || 'Error desconocido'}` });
-        }
-      } else if (error.request) {
-        // Error de red
-        setErrors({ general: 'Error de conexión. Verifica que el servidor esté corriendo en http://127.0.0.1:8000' });
-      } else {
-        // Otro tipo de error
-        setErrors({ general: 'Error inesperado al cargar los datos' });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEditActivity = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('titulo', formData.titulo);
-      formDataToSend.append('descripcion', formData.descripcion);
-      formDataToSend.append('tipo', formData.tipo);
-      formDataToSend.append('curso', formData.curso);
-      formDataToSend.append('estado', formData.estado);
-      
-      if (formData.fecha_limite) {
-        formDataToSend.append('fecha_limite', formData.fecha_limite);
-      }
-      
-      if (formData.recurso) {
-        formDataToSend.append('recurso', formData.recurso);
-      }
-
-      const response = await axios.put(
-        `http://localhost:3000/api/actividades/${selectedActivity.id}/gestionar/`, 
-        formDataToSend,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          }
-        }
-      );
-      
-      setSuccessMessage('Actividad actualizada exitosamente');
-      setShowEditModal(false);
-      setSelectedActivity(null);
-      cargarDatos();
-
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-    } catch (error) {
-      console.error('Error al actualizar actividad:', error);
-      if (error.response && error.response.data) {
-        setErrors(error.response.data);
-      } else {
-        setErrors({ general: 'Error al actualizar la actividad' });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteActivity = async (actividadId) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar esta actividad? Esta acción no se puede deshacer.')) {
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await axios.delete(`/api/actividades/${actividadId}/gestionar/`);
-      
-      setSuccessMessage('Actividad eliminada exitosamente');
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-    } catch (error) {
-      console.error('Error al eliminar actividad:', error);
-      if (error.response && error.response.data) {
-        setErrors({ general: error.response.data.mensaje });
-      } else {
-        setErrors({ general: 'Error al eliminar la actividad' });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const openEditModal = (actividad) => {
-    setSelectedActivity(actividad);
-    setFormData({
-      titulo: actividad.titulo,
-      descripcion: actividad.descripcion,
-      tipo: actividad.tipo,
-      curso: actividad.curso,
-      fecha_limite: actividad.fecha_limite || '',
-      estado: actividad.estado,
-      recurso: null // No mostrar archivo actual, solo permitir cambio
-    });
-    setErrors({});
-    setShowEditModal(true);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    
-    if (type === 'file') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: files[0]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
-
-  const handleFiltroChange = (e) => {
-    const { name, value } = e.target;
-    setFiltros(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const canEditActivity = (actividad) => {
-    if (user.rol === 'administrador') return true;
-    if (user.rol === 'profesor') {
-      // Verificar si el profesor es dueño del curso de la actividad
-      const curso = cursos.find(c => c.id === actividad.curso);
-      return curso && curso.profesor === user.usuario_id;
-    }
-    return false;
-  };
-
-  const canDeleteActivity = (actividad) => {
-    if (user.rol === 'administrador') return true;
-    if (user.rol === 'profesor') {
-      const curso = cursos.find(c => c.id === actividad.curso);
-      return curso && curso.profesor === user.usuario_id;
-    }
-    return false;
-  };
-
-  // Filtrar actividades según los filtros aplicados
-  const actividadesFiltradas = actividades.filter(actividad => {
-    const curso = cursos.find(c => c.id === actividad.curso);
-    const cumpleCurso = !filtros.curso || actividad.curso.toString() === filtros.curso;
-    const cumpleTipo = !filtros.tipo || actividad.tipo === filtros.tipo;
-    const cumpleBusqueda = !filtros.busqueda || 
-      actividad.titulo.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-      actividad.descripcion.toLowerCase().includes(filtros.busqueda.toLowerCase());
-    
-    return cumpleCurso && cumpleTipo && cumpleBusqueda;
-  });
-
-  const getTipoLabel = (tipo) => {
-    const tipoObj = tiposActividad.find(t => t.value === tipo);
-    return tipoObj ? tipoObj.label : tipo;
-  };
-
-  const getCursoNombre = (cursoId) => {
-    const curso = cursos.find(c => c.id === cursoId);
-    return curso ? curso.nombre : 'Curso no encontrado';
-  };
-
-  const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'pendiente': return '#ffc107';
-      case 'completada': return '#28a745';
-      case 'en_revision': return '#17a2b8';
-      default: return '#6c757d';
-    }
-  };
-
-  const getEstadoLabel = (estado) => {
-    switch (estado) {
-      case 'pendiente': return 'Pendiente';
-      case 'completada': return 'Completada';
-      case 'en_revision': return 'En Revisión';
-      default: return estado;
-    }
-  };
-
+      const activityRequest = user?.rol === 'administrador' ? getActivities() : getTeacherActivities();
+      const [activityResponse, courseResponse, typeResponse] = await Promise.all([activityRequest, getCourses(), getActivityTypes()]);
+      setActivities(Array.isArray(activityResponse.data) ? activityResponse.data : activityResponse.data.actividades || []);
+      setCourses(Array.isArray(courseResponse.data) ? courseResponse.data : courseResponse.data.cursos || []);
+      setTypes(typeResponse.data || []);
+      setError('');
+    } catch (_) { setError('No se pudieron cargar las actividades. Inténtalo de nuevo.'); }
+    finally { setLoading(false); }
+  }, [user?.rol]);
+  useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    // El usuario se carga desde localStorage con toda la información
-    if (user && (user.usuario_id || user.id)) {
-      console.log('Usuario cargado correctamente:', user);
-      cargarDatos();
-    } else {
-      console.log('Advertencia: Usuario no tiene ID - structure:', user);
+    if (location.state?.notice) {
+      setSuccess(location.state.notice);
+      navigate(location.pathname, { replace: true, state: null });
     }
-  }, [user]);
+  }, [location.key, location.pathname, location.state, navigate]);
 
-  return (
-    <div className="activity-management">
-      <div className="management-header">
-        <div className="header-content">
-          <h2>Gestión de Actividades</h2>
-          <p>
-            {user.rol === 'profesor' 
-              ? 'Como profesor, puedes gestionar actividades de tus cursos' 
-              : 'Como administrador, puedes gestionar todas las actividades'
-            }
-          </p>
-        </div>
-        {(user.rol === 'profesor' || user.rol === 'administrador') && (
-          <div className="header-actions">
-            <button className="create-activity-btn" onClick={onAddActivity}>
-              <span className="btn-icon">📝➕</span>
-              <span className="btn-text">Nueva Actividad</span>
-            </button>
-          </div>
-        )}
-      </div>
+  const filtered = useMemo(() => activities.filter((item) => {
+    const query = search.trim().toLocaleLowerCase();
+    return (!query || `${item.titulo || ''} ${item.descripcion || ''} ${item.curso_nombre || ''}`.toLocaleLowerCase().includes(query))
+      && (!courseFilter || String(item.curso) === courseFilter)
+      && (!typeFilter || item.tipo === typeFilter);
+  }), [activities, search, courseFilter, typeFilter]);
 
-      {/* Filtros */}
-      <div className="filters-section">
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label>Buscar:</label>
-            <input
-              type="text"
-              name="busqueda"
-              value={filtros.busqueda}
-              onChange={handleFiltroChange}
-              placeholder="Buscar por título o descripción..."
-              className="filter-input"
-            />
-          </div>
+  const edit = (item) => {
+    setSelected(item);
+    setForm({ titulo: item.titulo || '', descripcion: item.descripcion || '', curso: item.curso || '', tipo: item.tipo || 'otro', estado: item.estado || 'pendiente', fecha_limite: item.fecha_limite || '' });
+    setError(''); setDrawerOpen(true);
+  };
+  const change = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const save = async (event) => {
+    event.preventDefault(); setSaving(true); setError('');
+    try {
+      await updateActivity(selected.id, { ...form, curso: Number(form.curso) });
+      setDrawerOpen(false); setSuccess('Actividad actualizada.'); await load();
+    } catch (failure) { setError(failure.response?.data?.mensaje || 'No se pudo actualizar la actividad.'); }
+    finally { setSaving(false); }
+  };
+  const assign = async (item) => {
+    setError(''); setSuccess('');
+    try {
+      await assignActivityToCourse({ curso_id: item.curso, actividad_ids: [item.id] });
+      setSuccess(`Actividad asignada al curso ${item.curso_nombre || ''}.`);
+      await load();
+    } catch (failure) { setError(failure.response?.data?.mensaje || 'No se pudo asignar la actividad. Verifica que el curso tenga estudiantes inscritos.'); }
+  };
+  const remove = async () => {
+    if (!toDelete) return;
+    try { await deleteActivity(toDelete.id); setSuccess('Actividad eliminada.'); setToDelete(null); await load(); }
+    catch (failure) { setError(failure.response?.data?.mensaje || 'No se pudo eliminar la actividad.'); setToDelete(null); }
+  };
 
-          <div className="filter-group">
-            <label>Curso:</label>
-            <select
-              name="curso"
-              value={filtros.curso}
-              onChange={handleFiltroChange}
-              className="filter-select"
-            >
-              <option value="">Todos los cursos</option>
-              {cursos.map(curso => (
-                <option key={curso.id} value={curso.id}>
-                  {curso.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Tipo:</label>
-            <select
-              name="tipo"
-              value={filtros.tipo}
-              onChange={handleFiltroChange}
-              className="filter-select"
-            >
-              <option value="">Todos los tipos</option>
-              {tiposActividad.map(tipo => (
-                <option key={tipo.value} value={tipo.value}>
-                  {tipo.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <button 
-              className="clear-filters-btn"
-              onClick={() => setFiltros({ curso: '', tipo: '', busqueda: '' })}
-            >
-              Limpiar Filtros
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {successMessage && (
-        <div className="success-message">
-          {successMessage}
-        </div>
-      )}
-
-      {errors.general && (
-        <div className="error-message">
-          {errors.general}
-        </div>
-      )}
-
-      {isLoading ? (
-        <SkeletonLoader count={3} label="Cargando actividades" />
-      ) : (
-        <div className="activities-grid">
-          {actividadesFiltradas.map(actividad => (
-            <div key={actividad.id} className="activity-card">
-              <div className="activity-header">
-                <div className="activity-title-section">
-                  <h3>{actividad.titulo}</h3>
-                  <div className="activity-meta">
-                    <span className="activity-type">{getTipoLabel(actividad.tipo)}</span>
-                    <span 
-                      className="activity-status"
-                      style={{ backgroundColor: getEstadoColor(actividad.estado) }}
-                    >
-                      {getEstadoLabel(actividad.estado)}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="activity-actions">
-                  {canEditActivity(actividad) && (
-                    <button 
-                      className="edit-btn"
-                      onClick={() => openEditModal(actividad)}
-                      title="Editar actividad"
-                    >
-                      ✏️
-                    </button>
-                  )}
-                  {canEditActivity(actividad) && (
-                    <button 
-                      className="assign-btn"
-                      onClick={() => openAssignModal(actividad)}
-                      title="Asignar a estudiantes"
-                    >
-                      👥
-                    </button>
-                  )}
-                  {canDeleteActivity(actividad) && (
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDeleteActivity(actividad.id)}
-                      title="Eliminar actividad"
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="activity-content">
-                <p className="activity-description">{actividad.descripcion}</p>
-                
-                <div className="activity-info">
-                  <div className="info-item">
-                    <span className="info-label">Curso:</span>
-                    <span className="info-value">{getCursoNombre(actividad.curso)}</span>
-                  </div>
-                  
-                  {actividad.fecha_limite && (
-                    <div className="info-item">
-                      <span className="info-label">Fecha límite:</span>
-                      <span className="info-value">
-                        {new Date(actividad.fecha_limite).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="info-item">
-                    <span className="info-label">Creado:</span>
-                    <span className="info-value">
-                      {new Date(actividad.fecha_creacion).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {actividadesFiltradas.length === 0 && (
-            <EmptyState
-              icon="📝"
-              title={actividades.length === 0 ? 'Aún no hay actividades' : 'No encontramos actividades'}
-              description={actividades.length === 0
-                ? 'Crea una actividad para comenzar.'
-                : 'Prueba ajustando o limpiando los filtros aplicados.'}
-              action={actividades.length === 0 && (user.rol === 'profesor' || user.rol === 'administrador') ? (
-                <button className="create-activity-btn" onClick={onAddActivity}>
-                  Crear primera actividad
-                </button>
-              ) : null}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Modal Editar Actividad */}
-      {showEditModal && selectedActivity && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Editar Actividad: {selectedActivity.titulo}</h3>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>✕</button>
-            </div>
-
-            <form onSubmit={handleEditActivity} className="activity-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Título de la Actividad *</label>
-                  <input
-                    type="text"
-                    name="titulo"
-                    value={formData.titulo}
-                    onChange={handleChange}
-                    required
-                    className={errors.titulo ? 'error' : ''}
-                  />
-                  {errors.titulo && <span className="error-text">{errors.titulo}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>Tipo de Actividad *</label>
-                  <select
-                    name="tipo"
-                    value={formData.tipo}
-                    onChange={handleChange}
-                    required
-                    className={errors.tipo ? 'error' : ''}
-                  >
-                    {tiposActividad.map(tipo => (
-                      <option key={tipo.value} value={tipo.value}>
-                        {tipo.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.tipo && <span className="error-text">{errors.tipo}</span>}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Descripción *</label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  required
-                  className={errors.descripcion ? 'error' : ''}
-                  rows="4"
-                />
-                {errors.descripcion && <span className="error-text">{errors.descripcion}</span>}
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Curso *</label>
-                  <select
-                    name="curso"
-                    value={formData.curso}
-                    onChange={handleChange}
-                    required
-                    className={errors.curso ? 'error' : ''}
-                  >
-                    <option value="">Seleccionar curso</option>
-                    {cursos.map(curso => (
-                      <option key={curso.id} value={curso.id}>
-                        {curso.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.curso && <span className="error-text">{errors.curso}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>Estado</label>
-                  <select
-                    name="estado"
-                    value={formData.estado}
-                    onChange={handleChange}
-                    className={errors.estado ? 'error' : ''}
-                  >
-                    <option value="pendiente">Pendiente</option>
-                    <option value="completada">Completada</option>
-                    <option value="en_revision">En Revisión</option>
-                  </select>
-                  {errors.estado && <span className="error-text">{errors.estado}</span>}
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Fecha Límite (Opcional)</label>
-                <input
-                  type="date"
-                  name="fecha_limite"
-                  value={formData.fecha_limite}
-                  onChange={handleChange}
-                  className={errors.fecha_limite ? 'error' : ''}
-                />
-                {errors.fecha_limite && <span className="error-text">{errors.fecha_limite}</span>}
-              </div>
-
-              <div className="form-group">
-                <label>Nuevo Archivo de Recurso (Opcional)</label>
-                <input
-                  type="file"
-                  name="recurso"
-                  onChange={handleChange}
-                  className={errors.recurso ? 'error' : ''}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.mp4,.mp3"
-                />
-                <small className="file-help">
-                  Dejar vacío para mantener el archivo actual
-                </small>
-                {errors.recurso && <span className="error-text">{errors.recurso}</span>}
-              </div>
-
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setShowEditModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="submit-btn" disabled={isLoading}>
-                  {isLoading ? 'Actualizando...' : 'Actualizar Actividad'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Asignar Actividad */}
-      {showAssignModal && selectedActivityForAssign && (
-        <div className="modal-overlay">
-          <div className="modal-content medium">
-            <div className="modal-header">
-              <h3>Asignar: {selectedActivityForAssign.titulo}</h3>
-              <button className="close-btn" onClick={() => setShowAssignModal(false)}>✕</button>
-            </div>
-
-            <div className="assign-content">
-              <div className="assign-options">
-                <label className="assign-option">
-                  <input
-                    type="checkbox"
-                    checked={assignToAll}
-                    onChange={(e) => {
-                      setAssignToAll(e.target.checked);
-                      if (e.target.checked) setSelectedEstudiantes([]);
-                    }}
-                  />
-                  <span>Asignar a todos los estudiantes del curso</span>
-                </label>
-              </div>
-
-              {!assignToAll && (
-                <div className="students-selection">
-                  <h4>Seleccionar estudiantes específicos:</h4>
-                  <div className="students-checkboxes">
-                    {estudiantes.map(inscripcion => (
-                      <label key={inscripcion.id} className="student-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={selectedEstudiantes.some(s => s.id === inscripcion.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedEstudiantes(prev => [...prev, inscripcion]);
-                            } else {
-                              setSelectedEstudiantes(prev => prev.filter(s => s.id !== inscripcion.id));
-                            }
-                          }}
-                        />
-                        <span>{inscripcion.estudiante.nombre_completo}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="assign-actions">
-                <button 
-                  type="button" 
-                  className="cancel-btn"
-                  onClick={() => setShowAssignModal(false)}
-                >
-                  Cancelar
-                </button>
-                <button 
-                  className="assign-btn-modal"
-                  onClick={handleAssignActivity}
-                  disabled={isLoading || (!assignToAll && selectedEstudiantes.length === 0)}
-                >
-                  {isLoading ? 'Asignando...' : 
-                   assignToAll ? 'Asignar a Todo el Curso' : 
-                   `Asignar a ${selectedEstudiantes.length} Estudiante${selectedEstudiantes.length !== 1 ? 's' : ''}`}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ActivityManagement;
+  return <section className="activity-management">
+    <header className="activity-management__header"><div><span>Contenido educativo</span><h1>Actividades</h1><p>Administra las actividades y sus asignaciones por curso.</p></div><button type="button" onClick={() => navigate('/activities/create')}><Plus size={18} aria-hidden="true"/> Crear actividad</button></header>
+    {success && <p className="activity-management__notice" role="status">{success}</p>}{error && !drawerOpen && <p className="activity-management__error" role="alert">{error}</p>}
+    <div className="activity-management__filters"><label><span className="sr-only">Buscar actividades</span><Search size={18} aria-hidden="true"/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por título, descripción o curso…"/></label><label>Curso<select value={courseFilter} onChange={(event) => setCourseFilter(event.target.value)}><option value="">Todos los cursos</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.nombre}</option>)}</select></label><label>Tipo<select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}><option value="">Todos los tipos</option>{types.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label></div>
+    {loading ? <p role="status" className="activity-management__loading">Cargando actividades…</p> : filtered.length ? <div className="activity-management__grid">{filtered.map((item) => <article className="activity-management__card" key={item.id}><div className="activity-management__card-top"><ClipboardList size={20} aria-hidden="true"/><span>{item.template_type || 'actividad'}</span></div><h2>{item.titulo}</h2><p>{item.descripcion}</p><dl><div><dt>Curso</dt><dd>{item.curso_nombre || courses.find((course) => Number(course.id) === Number(item.curso))?.nombre || 'Sin curso'}</dd></div><div><dt>Tipo</dt><dd>{types.find((type) => type.value === item.tipo)?.label || item.tipo}</dd></div><div><dt>Fecha límite</dt><dd>{item.fecha_limite ? new Date(`${item.fecha_limite}T00:00:00`).toLocaleDateString() : 'Sin fecha'}</dd></div></dl>{item.estadisticas && <div className="activity-management__stats"><span>{item.estadisticas.total_asignaciones} asignaciones</span><span>{item.estadisticas.completadas} completadas</span></div>}<footer><button type="button" onClick={() => assign(item)}><Send size={16} aria-hidden="true"/> Asignar al curso</button><button type="button" aria-label={`Editar ${item.titulo}`} onClick={() => edit(item)}><Pencil size={17} aria-hidden="true"/></button><button type="button" aria-label={`Eliminar ${item.titulo}`} onClick={() => setToDelete(item)}><Trash2 size={17} aria-hidden="true"/></button></footer></article>)}</div> : <EmptyState icon={<ClipboardList/>} title={activities.length ? 'No hay coincidencias' : 'Aún no hay actividades'} description={activities.length ? 'Ajusta los filtros para encontrar una actividad.' : 'Crea una actividad para comenzar.'} action={!activities.length && <button type="button" onClick={() => navigate('/activities/create')}>Crear primera actividad</button>}/>}
+    <ManagementDrawer open={drawerOpen} onOpenChange={setDrawerOpen} title="Editar actividad" description="Actualiza la información y guarda los cambios." footer={<div className="activity-management__form-actions"><button type="button" onClick={() => setDrawerOpen(false)}>Cancelar</button><button type="submit" form="activity-edit-form" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button></div>}>
+      {error && <p className="activity-management__error" role="alert">{error}</p>}<form id="activity-edit-form" className="activity-management__form" onSubmit={save}><label>Título<input name="titulo" required maxLength="200" value={form.titulo} onChange={change}/></label><label>Descripción<textarea name="descripcion" required rows="4" value={form.descripcion} onChange={change}/></label><label>Curso<select name="curso" required value={form.curso} onChange={change}>{courses.map((course) => <option key={course.id} value={course.id}>{course.nombre}</option>)}</select></label><label>Tipo<select name="tipo" value={form.tipo} onChange={change}>{types.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label><label>Estado<select name="estado" value={form.estado} onChange={change}><option value="pendiente">Pendiente</option><option value="completada">Completada</option><option value="en_revision">En revisión</option></select></label><label>Fecha límite<input type="date" name="fecha_limite" value={form.fecha_limite} onChange={change}/></label></form>
+    </ManagementDrawer>
+    <ConfirmDialog open={Boolean(toDelete)} title="Eliminar actividad" description={`¿Eliminar “${toDelete?.titulo || ''}”? Esta acción no se puede deshacer.`} onOpenChange={(open) => { if (!open) setToDelete(null); }} onConfirm={remove}/>
+  </section>;
+}

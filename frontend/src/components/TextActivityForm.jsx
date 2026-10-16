@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getCourses, createTextActivity } from '../services/activities.service';
+import { createTextActivity } from '../services/activities.service';
+import { getCourses } from '../services/courses.service';
 import QuestionForm from './QuestionForm';
 import './TextActivityForm.css';
 
@@ -7,7 +8,10 @@ const TextActivityForm = ({
   curso, 
   onActivityCreated, 
   onCancel,
-  initialData = {} 
+  initialData = {},
+  onDraftChange,
+  deferSubmit = false,
+  submitLabel
 }) => {
   const [formData, setFormData] = useState({
     titulo: initialData.titulo || '',
@@ -20,6 +24,10 @@ const TextActivityForm = ({
   const [cursos, setCursos] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    onDraftChange?.(formData);
+  }, [formData, onDraftChange]);
 
   useEffect(() => {
     loadCourses();
@@ -226,6 +234,11 @@ const TextActivityForm = ({
         ...(formData.tiempo_limite_minutos && { tiempo_limite_minutos: parseInt(formData.tiempo_limite_minutos) })
       };
 
+      if (deferSubmit) {
+        onActivityCreated?.(dataToSend);
+        return;
+      }
+
       const response = await createTextActivity(dataToSend);
       
       onActivityCreated && onActivityCreated(response.data);
@@ -426,7 +439,7 @@ const TextActivityForm = ({
             className="btn btn-primary"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Creando...' : 'Crear actividad'}
+            {isSubmitting ? 'Creando...' : (submitLabel || 'Crear actividad')}
           </button>
         </div>
         

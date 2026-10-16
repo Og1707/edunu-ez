@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from '../../utils/axiosConfig';
 import './ColorGame.css';
 
-const ColorGame = ({ user, actividad, onComplete, onClose }) => {
+const ColorGame = ({ onComplete, onClose }) => {
   // Estados del juego
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(0);
   const [timeElapsed, setTimeElapsed] = useState(0);
-  const [respuestas, setRespuestas] = useState([]); // Guardar detalle de cada respuesta
   
   // Color actual y opciones
   const [currentColor, setCurrentColor] = useState(null);
@@ -84,7 +82,6 @@ const ColorGame = ({ user, actividad, onComplete, onClose }) => {
     setRound(0);
     setTimeElapsed(0);
     respuestasRef.current = []; // Limpiar respuestas anteriores
-    setRespuestas([]); // Limpiar estado también
     setSelectedColor(null);
     startTime.current = Date.now();
     generateRound();
@@ -116,7 +113,6 @@ const ColorGame = ({ user, actividad, onComplete, onClose }) => {
       tiempo_respuesta: timeElapsed
     };
     respuestasRef.current.push(respuestaActual);
-    setRespuestas([...respuestasRef.current]); // También actualizar state para UI si lo necesitas
 
     if (isCorrect) {
       setScore(score + 1);
@@ -142,27 +138,12 @@ const ColorGame = ({ user, actividad, onComplete, onClose }) => {
   };
 
   // Guardar resultados
-  const saveResults = async () => {
-    try {
-      const response = await axios.post('/api/estudiante/actividades/completar/', {
-        actividad_id: actividad.id,
-        puntuacion: Math.round((score / MAX_ROUNDS) * 100),
-        tiempo_empleado: Math.round(timeElapsed / 60),
-        respuestas_detalle: respuestasRef.current,
-      });
-
-      // Llamar callback para notificar que se completó
-      if (onComplete) {
-        onComplete({
-          puntuacion: Math.round((score / MAX_ROUNDS) * 100),
-          tiempoEmpleado: timeElapsed,
-          aciertos: score,
-        });
-      }
-    } catch (error) {
-      console.error('Error al guardar resultados:', error);
-    }
-  };
+  const saveResults = () => onComplete?.({
+    puntuacion: Math.round((score / MAX_ROUNDS) * 100),
+    tiempoEmpleado: timeElapsed,
+    aciertos: score,
+    respuestas: respuestasRef.current,
+  });
 
   // Reintentar el juego
   const retryGame = () => {
@@ -175,7 +156,6 @@ const ColorGame = ({ user, actividad, onComplete, onClose }) => {
     setColorOptions([]);
     setSelectedColor(null);
     setShowFeedback(false);
-    setRespuestas([]); // Limpiar respuestas anteriores
     respuestasRef.current = []; // Limpiar ref
     startTime.current = null;
   };

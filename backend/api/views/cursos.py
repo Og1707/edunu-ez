@@ -16,6 +16,14 @@ from api.services.cache_service import CacheService
 def listar_cursos(request):
     """Endpoint para listar todos los cursos disponibles optimizado con caching y select_related."""
     cursos_data = CursosService.listar_cursos_optimizados()
+    if request.user.is_authenticated:
+        if request.user.rol == 'profesor':
+            cursos_data = [curso for curso in cursos_data if curso['profesor'] == request.user.id]
+        elif request.user.rol == 'estudiante':
+            cursos_inscritos = set(
+                Curso.objects.filter(estudiantes__estudiante=request.user).values_list('id', flat=True)
+            )
+            cursos_data = [curso for curso in cursos_data if curso['id'] in cursos_inscritos]
     return Response(cursos_data, status=status.HTTP_200_OK)
 
 

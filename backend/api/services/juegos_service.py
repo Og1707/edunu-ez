@@ -189,7 +189,8 @@ class JuegosService:
         aciertos: int = 0,
         errores: int = 0,
         tiempo_jugado: int = 0,
-        datos_partida: Optional[Dict[str, Any]] = None
+        datos_partida: Optional[Dict[str, Any]] = None,
+        estudiante: Optional[Usuario] = None,
     ) -> Dict[str, Any]:
         """Finaliza una partida, persiste métricas y recalcula el promedio del juego."""
         if not partida_id:
@@ -199,6 +200,12 @@ class JuegosService:
             partida = PartidaJuego.objects.select_related('juego').get(id=partida_id)
         except PartidaJuego.DoesNotExist:
             raise ResourceNotFoundException("Partida no encontrada.", code="PARTIDA_NO_ENCONTRADA")
+
+        if estudiante and partida.estudiante_id != estudiante.id:
+            raise PermissionDeniedBusinessException(
+                "No puedes guardar resultados en una partida de otro estudiante.",
+                code="PARTIDA_NO_AUTORIZADA",
+            )
 
         partida.estado = 'completada'
         partida.fecha_fin = timezone.now()

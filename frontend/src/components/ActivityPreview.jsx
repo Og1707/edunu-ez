@@ -37,7 +37,7 @@ const ActivityPreview = ({
         const response = await previewMultimediaTemplate(previewData);
         setPreview(response.data);
       } else {
-        // Para texto y legacy, generar preview local
+        // Las actividades de texto se previsualizan localmente.
         generateLocalPreview();
       }
     } catch (err) {
@@ -282,7 +282,6 @@ const ActivityPreview = ({
     const names = {
       multimedia: 'Multimedia',
       texto: 'Texto',
-      legacy: 'Heredada'
     };
     return names[type] || type;
   };
