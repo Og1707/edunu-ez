@@ -20,6 +20,10 @@
 .activity-builder__mobile-tabs { display:none; }
 .activity-builder__message { max-width:1440px; margin:0 auto 1rem; padding:.75rem 1rem; border-radius:var(--radius-md); color:var(--color-primary-800); background:var(--color-primary-50); }
 .activity-builder__review { padding:1.5rem; border-radius:var(--radius-lg); background:white; }
+.activity-builder__assignment-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem; margin:1rem 0; }
+.activity-builder__assignment-summary div { padding:.85rem 1rem; border:1px solid var(--color-neutral-200); border-radius:var(--radius-md); background:var(--color-neutral-50); }
+.activity-builder__assignment-summary dt { color:var(--color-neutral-600); font-size:.85rem; }
+.activity-builder__assignment-summary dd { margin:.25rem 0 0; font-weight:600; }
 .activity-builder__review-heading,.activity-builder__publish { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
 .activity-builder__publish { justify-content:flex-end; margin-top:1.5rem; }
 .activity-builder__publish button:last-child { color:white; border-color:var(--color-primary-600); background:var(--color-primary-600); }

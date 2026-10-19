@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { previewMultimediaTemplate } from '../services/activities.service';
 import './ActivityPreview.css';
 
@@ -15,13 +15,51 @@ const ActivityPreview = ({
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
 
-  useEffect(() => {
-    if (isVisible && activityData) {
-      generatePreview();
-    }
-  }, [isVisible, activityData, templateType]);
+  const validateActivityStructure = useCallback(() => {
+    if (!activityData.titulo?.trim()) return false;
+    if (!activityData.descripcion?.trim()) return false;
 
-  const generatePreview = async () => {
+    const questions = activityData.preguntas || [];
+    if (questions.length === 0) return false;
+
+    for (const question of questions) {
+      if (!question.enunciado?.trim()) return false;
+
+      const options = question.opciones || [];
+      if (options.length < 2) return false;
+
+      const correctOptions = options.filter(o => o.es_correcta);
+      if (correctOptions.length !== 1) return false;
+
+      for (const option of options) {
+        if (!option.texto?.trim()) return false;
+      }
+    }
+
+    return true;
+  }, [activityData]);
+
+  const generateLocalPreview = useCallback(() => {
+    const questions = activityData.preguntas || [];
+    const totalOptions = questions.reduce((total, q) => total + (q.opciones?.length || 0), 0);
+    const isValid = validateActivityStructure();
+
+    setPreview({
+      valido: isValid,
+      mensaje: isValid ? 'Estructura válida' : 'Estructura inválida',
+      preview: {
+        titulo: activityData.titulo || 'Sin título',
+        descripcion: activityData.descripcion || 'Sin descripción',
+        template_type: templateType,
+        preguntas: questions
+      },
+      preguntas_count: questions.length,
+      opciones_total: totalOptions,
+      tiempo_limite: activityData.tiempo_limite_minutos || null
+    });
+  }, [activityData, templateType, validateActivityStructure]);
+
+  const generatePreview = useCallback(async () => {
     if (!activityData) return;
 
     setLoading(true);
@@ -48,52 +86,11 @@ const ActivityPreview = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [activityData, generateLocalPreview, templateType]);
 
-  const generateLocalPreview = () => {
-    const questions = activityData.preguntas || [];
-    const totalOptions = questions.reduce((total, q) => total + (q.opciones?.length || 0), 0);
-
-    const localPreview = {
-      valido: validateActivityStructure(),
-      mensaje: validateActivityStructure() ? 'Estructura válida' : 'Estructura inválida',
-      preview: {
-        titulo: activityData.titulo || 'Sin título',
-        descripcion: activityData.descripcion || 'Sin descripción',
-        template_type: templateType,
-        preguntas: questions
-      },
-      preguntas_count: questions.length,
-      opciones_total: totalOptions,
-      tiempo_limite: activityData.tiempo_limite_minutos || null
-    };
-
-    setPreview(localPreview);
-  };
-
-  const validateActivityStructure = () => {
-    if (!activityData.titulo?.trim()) return false;
-    if (!activityData.descripcion?.trim()) return false;
-
-    const questions = activityData.preguntas || [];
-    if (questions.length === 0) return false;
-
-    for (const question of questions) {
-      if (!question.enunciado?.trim()) return false;
-      
-      const options = question.opciones || [];
-      if (options.length < 2) return false;
-      
-      const correctOptions = options.filter(o => o.es_correcta);
-      if (correctOptions.length !== 1) return false;
-      
-      for (const option of options) {
-        if (!option.texto?.trim()) return false;
-      }
-    }
-
-    return true;
-  };
+  useEffect(() => {
+    if (isVisible && activityData) generatePreview();
+  }, [isVisible, activityData, generatePreview]);
 
   const renderContentTab = () => {
     if (!preview) return null;

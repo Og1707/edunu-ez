@@ -4,6 +4,7 @@ import TemplateSelector from '../components/TemplateSelector';
 import TextActivityForm from '../components/TextActivityForm';
 import MultimediaActivityForm from '../components/MultimediaActivityForm';
 import ActivityPreview from '../components/ActivityPreview';
+import { getCourses } from '../services/courses.service';
 import { createTextActivity, createMultimediaActivity } from '../services/activities.service';
 import './ActivityBuilderPage.css';
 
@@ -18,6 +19,7 @@ export default function ActivityBuilderPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [previewTab, setPreviewTab] = useState('edit');
+  const [courses, setCourses] = useState([]);
 
   const updateDraft = useCallback((data) => setDraft(data), []);
   useEffect(() => {
@@ -31,6 +33,9 @@ export default function ActivityBuilderPage() {
         localStorage.removeItem(DRAFT_KEY);
       }
     } catch (_) { /* Draft corrupto: iniciar vacío. */ }
+  }, []);
+  useEffect(() => {
+    getCourses().then(({ data }) => setCourses(Array.isArray(data) ? data : [])).catch(() => setCourses([]));
   }, []);
 
   const selectTemplate = (key) => {
@@ -95,7 +100,7 @@ export default function ActivityBuilderPage() {
           <aside className={`activity-builder__live-preview ${previewTab === 'preview' ? '' : 'is-mobile-hidden'}`}><h2>Vista previa en vivo</h2><h3>{draft.titulo || 'Título de la actividad'}</h3><p>{draft.descripcion || 'La descripción aparecerá aquí.'}</p>{(draft.preguntas || []).map((q, i) => <div className="activity-builder__question" key={q.id || i}><strong>{i + 1}. {q.enunciado || 'Pregunta sin enunciado'}</strong><ul>{(q.opciones || []).map((o, j) => <li key={o.id || j}>{o.texto || 'Opción'}</li>)}</ul></div>)}</aside>
         </div>
       </>}
-      {step === 2 && <section className="activity-builder__review"><div className="activity-builder__review-heading"><div><h2>Revisa tu actividad</h2><p>Confirma el contenido antes de publicarlo.</p></div><button type="button" onClick={() => setStep(1)}>Editar contenido</button></div><ActivityPreview templateType={template} activityData={activityData} isVisible onClose={() => setStep(1)} onConfirm={publish} isSaving={saving} /><div className="activity-builder__publish"><button type="button" onClick={() => setStep(1)}>Volver al editor</button><button type="button" disabled={saving} onClick={publish}>{saving ? 'Publicando…' : 'Publicar actividad'}</button></div></section>}
+      {step === 2 && <section className="activity-builder__review"><div className="activity-builder__review-heading"><div><h2>Revisa tu actividad</h2><p>Confirma el contenido y la asignación antes de publicarlo.</p></div><button type="button" onClick={() => setStep(1)}>Editar contenido</button></div><dl className="activity-builder__assignment-summary"><div><dt>Curso</dt><dd>{courses.find((item) => String(item.id) === String(draft.curso))?.nombre || 'Seleccionado en el formulario'}</dd></div><div><dt>Asignatura</dt><dd>{(() => { const course = courses.find((item) => String(item.id) === String(draft.curso)); const subjectIndex = course?.asignaturas?.findIndex((id) => String(id) === String(draft.asignatura)) ?? -1; return subjectIndex >= 0 ? course.asignaturas_nombres?.[subjectIndex] : 'Seleccionada en el formulario'; })()}</dd></div><div><dt>Fecha límite</dt><dd>{draft.fecha_limite || 'Sin fecha límite'}</dd></div></dl><ActivityPreview templateType={template} activityData={activityData} isVisible onClose={() => setStep(1)} onConfirm={publish} isSaving={saving} /><div className="activity-builder__publish"><button type="button" onClick={() => setStep(1)}>Volver al editor</button><button type="button" disabled={saving} onClick={publish}>{saving ? 'Publicando…' : 'Publicar actividad'}</button></div></section>}
     </main>
   );
 }

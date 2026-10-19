@@ -30,6 +30,24 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class UsuarioGestionSerializer(UsuarioSerializer):
+    """Datos de usuario para gestión, incluyendo los cursos vinculados."""
+    cursos = serializers.SerializerMethodField()
+
+    class Meta(UsuarioSerializer.Meta):
+        fields = UsuarioSerializer.Meta.fields + ['cursos']
+
+    def get_cursos(self, usuario):
+        if usuario.rol == 'profesor':
+            cursos = usuario.cursos_asignados.all()
+        elif usuario.rol == 'estudiante':
+            cursos = (inscripcion.curso for inscripcion in usuario.cursos.all())
+        else:
+            return []
+
+        return [{'id': curso.id, 'nombre': curso.nombre} for curso in cursos]
+
+
 class LoginResponseSerializer(serializers.Serializer):
     """Serializer para la respuesta del endpoint de login (simplejwt)."""
 
@@ -43,11 +61,19 @@ class LoginResponseSerializer(serializers.Serializer):
 
 class ActividadSerializer(serializers.ModelSerializer):
     curso_nombre = serializers.CharField(source='curso.nombre', read_only=True)
+    asignatura_nombre = serializers.CharField(source='asignatura.nombre', read_only=True, allow_null=True)
     
     class Meta:
         model = Actividad
-        fields = ['id', 'titulo', 'descripcion', 'tipo', 'template_type', 'recurso', 'fecha_limite', 'estado', 'curso', 'curso_nombre', 'creado_por', 'fecha_creacion']
+        fields = ['id', 'titulo', 'descripcion', 'tipo', 'template_type', 'recurso', 'fecha_limite', 'estado', 'curso', 'curso_nombre', 'asignatura', 'asignatura_nombre', 'creado_por', 'fecha_creacion']
         read_only_fields = ['creado_por', 'fecha_creacion']
+
+    def validate(self, attrs):
+        curso = attrs.get('curso', getattr(self.instance, 'curso', None))
+        asignatura = attrs.get('asignatura', getattr(self.instance, 'asignatura', None))
+        if asignatura and curso and not curso.asignaturas.filter(pk=asignatura.pk).exists():
+            raise serializers.ValidationError({'asignatura': 'La asignatura seleccionada no pertenece al curso.'})
+        return attrs
     
     def create(self, validated_data):
         # El usuario que crea la actividad se asigna automáticamente
@@ -225,6 +251,22 @@ class ActividadConPreguntasMixin:
     TEMPLATE_TYPE: str = ''
     TIPO: str = ''
 
+    asignatura = serializers.PrimaryKeyRelatedField(queryset=Asignatura.objects.all(), required=True)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        curso = attrs.get('curso')
+        asignatura = attrs.get('asignatura')
+        if curso and asignatura and not curso.asignaturas.filter(pk=asignatura.pk).exists():
+            raise serializers.ValidationError({
+                'asignatura': 'La asignatura seleccionada no pertenece al curso.'
+            })
+
+        request = self.context.get('request')
+        if request and getattr(request.user, 'rol', None) == 'profesor' and curso and curso.profesor_id != request.user.id:
+            raise serializers.ValidationError({'curso': 'Solo puedes crear actividades en tus propios cursos.'})
+        return attrs
+
     def to_internal_value(self, data):
         """
         Inyecta template_type y tipo fijos antes de la validación de campos.
@@ -269,7 +311,7 @@ class ActividadMultimediaCreateSerializer(ActividadConPreguntasMixin, serializer
     class Meta:
         model = Actividad
         fields = [
-            'titulo', 'descripcion', 'tipo', 'template_type', 'curso',
+            'titulo', 'descripcion', 'tipo', 'template_type', 'curso', 'asignatura',
             'fecha_limite', 'preguntas'
         ]
 
@@ -292,7 +334,7 @@ class ActividadTextoCreateSerializer(ActividadConPreguntasMixin, serializers.Mod
     class Meta:
         model = Actividad
         fields = [
-            'titulo', 'descripcion', 'tipo', 'template_type', 'curso',
+            'titulo', 'descripcion', 'tipo', 'template_type', 'curso', 'asignatura',
             'fecha_limite', 'preguntas'
         ]
 
@@ -307,6 +349,7 @@ class ActividadCompletaSerializer(serializers.ModelSerializer):
     Incluye multimedia, preguntas y opciones según el tipo de plantilla.
     """
     curso_nombre = serializers.CharField(source='curso.nombre', read_only=True)
+    asignatura_nombre = serializers.CharField(source='asignatura.nombre', read_only=True, allow_null=True)
     multimedia = ActividadMultimediaSerializer(read_only=True)
     texto = ActividadTextoSerializer(read_only=True)
     preguntas = PreguntaSerializer(many=True, read_only=True)
@@ -315,7 +358,7 @@ class ActividadCompletaSerializer(serializers.ModelSerializer):
         model = Actividad
         fields = [
             'id', 'titulo', 'descripcion', 'tipo', 'template_type', 'recurso',
-            'fecha_limite', 'estado', 'curso', 'curso_nombre', 'creado_por',
+            'fecha_limite', 'estado', 'curso', 'curso_nombre', 'asignatura', 'asignatura_nombre', 'creado_por',
             'fecha_creacion', 'multimedia', 'texto', 'preguntas'
         ]
         read_only_fields = ['creado_por', 'fecha_creacion']

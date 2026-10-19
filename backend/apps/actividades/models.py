@@ -1,7 +1,7 @@
 from django.db import models
 from apps.core.models import TimeStampedModel, SoftDeleteModel
 from apps.usuarios.models import Usuario
-from apps.cursos.models import Curso
+from apps.cursos.models import Asignatura, Curso
 
 
 class Actividad(TimeStampedModel, SoftDeleteModel):
@@ -52,6 +52,14 @@ class Actividad(TimeStampedModel, SoftDeleteModel):
         Curso,
         on_delete=models.CASCADE,
         related_name='actividades'
+    )
+
+    asignatura = models.ForeignKey(
+        Asignatura,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='actividades',
     )
 
     creado_por = models.ForeignKey(

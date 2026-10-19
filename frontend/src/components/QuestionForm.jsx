@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import OptionForm from './OptionForm';
 import './QuestionForm.css';
 
@@ -23,47 +23,9 @@ const QuestionForm = ({
   onRemoveOption,
   onRemoveQuestion,
 }) => {
-  const [errors, setErrors] = useState({});
-
-  const validateQuestion = () => {
-    const newErrors = {};
-
-    // Validar enunciado
-    if (!question.enunciado?.trim()) {
-      newErrors.enunciado = 'El enunciado es requerido';
-    } else if (question.enunciado.length < 10) {
-      newErrors.enunciado = 'Mínimo 10 caracteres';
-    } else if (question.enunciado.length > 500) {
-      newErrors.enunciado = 'Máximo 500 caracteres';
-    }
-
-    // Validar opciones
-    if (!question.opciones || question.opciones.length < 2) {
-      newErrors.opciones = 'Mínimo 2 opciones de respuesta';
-    }
-
-    // Validar opciones con texto
-    const filledOptions = question.opciones?.filter(o => o.texto?.trim());
-    if (filledOptions?.length < 2) {
-      newErrors.opcionesTexto = 'Al menos 2 opciones deben tener texto';
-    }
-
-    // Validar exactamente 1 opción correcta
-    const correctCount = question.opciones?.filter(o => o.es_correcta).length || 0;
-    if (correctCount !== 1) {
-      newErrors.correctAnswer = correctCount === 0 
-        ? 'Debe marcar una opción como correcta'
-        : 'Solo puede haber 1 opción correcta';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleEnunciadoChange = (e) => {
     const { value } = e.target;
     onQuestionChange(question.id, 'enunciado', value);
-    if (errors.enunciado) setErrors(prev => ({ ...prev, enunciado: '' }));
   };
 
   const handleRemoveClick = () => {
@@ -76,11 +38,10 @@ const QuestionForm = ({
     onAddOption(question.id);
   };
 
-  const isValid = Object.keys(errors).length === 0;
   const correctAnswerCount = (question.opciones || []).filter(opt => opt.es_correcta).length;
 
   return (
-    <div className={`question-form ${isValid ? 'valid' : 'has-errors'}`}>
+    <div className="question-form valid">
       {/* Encabezado con número y botón eliminar */}
       <div className="question-header">
         <h4 className="question-title">
@@ -112,11 +73,8 @@ const QuestionForm = ({
           placeholder="Escribe el texto de la pregunta aquí..."
           rows="3"
           maxLength="500"
-          className={`form-control textarea-input ${errors.enunciado ? 'is-invalid' : ''}`}
+          className="form-control textarea-input"
         />
-        {errors.enunciado && (
-          <div className="error-message">{errors.enunciado}</div>
-        )}
       </div>
 
       {/* Opciones de respuesta */}
@@ -134,16 +92,6 @@ const QuestionForm = ({
             </span>
           )}
         </div>
-
-        {errors.opciones && (
-          <div className="error-message">{errors.opciones}</div>
-        )}
-        {errors.opcionesTexto && (
-          <div className="error-message">{errors.opcionesTexto}</div>
-        )}
-        {errors.correctAnswer && (
-          <div className="error-message">{errors.correctAnswer}</div>
-        )}
 
         <div className="options-list">
           {question.opciones && question.opciones.length > 0 ? (
@@ -174,7 +122,7 @@ const QuestionForm = ({
       </div>
 
       {/* Indicador de validación */}
-      {isValid && question.opciones?.length >= 2 && (
+      {question.opciones?.length >= 2 && (
         <div className="validation-success">
           ✓ Pregunta completada
         </div>

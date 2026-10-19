@@ -38,7 +38,7 @@ const ColorGame = ({ onComplete, onClose }) => {
   useEffect(() => {
     if (gameStarted && !gameOver) {
       if (!startTime.current) {
-        startTime.current = Date.now() - (timeElapsed * 1000);
+        startTime.current = Date.now();
       }
 
       gameTimer.current = setInterval(() => {

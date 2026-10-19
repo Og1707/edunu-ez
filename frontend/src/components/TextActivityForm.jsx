@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createTextActivity } from '../services/activities.service';
 import { getCourses } from '../services/courses.service';
 import QuestionForm from './QuestionForm';
 import './TextActivityForm.css';
+import './ActivityFormModern.css';
 
 const TextActivityForm = ({ 
   curso, 
@@ -17,6 +18,8 @@ const TextActivityForm = ({
     titulo: initialData.titulo || '',
     descripcion: initialData.descripcion || '',
     curso: curso || '',
+    asignatura: initialData.asignatura || '',
+    fecha_limite: initialData.fecha_limite || '',
     tiempo_limite_minutos: initialData.tiempo_limite_minutos || '',
     preguntas: initialData.preguntas || []
   });
@@ -29,29 +32,29 @@ const TextActivityForm = ({
     onDraftChange?.(formData);
   }, [formData, onDraftChange]);
 
+  const loadCourses = useCallback(async () => {
+    try {
+      const response = await getCourses();
+      setCursos(response.data);
+
+      setFormData(prev => prev.curso || response.data.length === 0
+        ? prev
+        : { ...prev, curso: response.data[0].id });
+    } catch (err) {
+      console.error('Error loading courses:', err);
+      setErrors(prev => ({ ...prev, cursos: 'Error al cargar cursos' }));
+    }
+  }, []);
+
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [loadCourses]);
 
   useEffect(() => {
     if (curso) {
       setFormData(prev => ({ ...prev, curso: curso }));
     }
   }, [curso]);
-
-  const loadCourses = async () => {
-    try {
-      const response = await getCourses();
-      setCursos(response.data);
-      
-      if (!formData.curso && response.data.length > 0) {
-        setFormData(prev => ({ ...prev, curso: response.data[0].id }));
-      }
-    } catch (err) {
-      console.error('Error loading courses:', err);
-      setErrors(prev => ({ ...prev, cursos: 'Error al cargar cursos' }));
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -63,7 +66,7 @@ const TextActivityForm = ({
         setFormData(prev => ({ ...prev, [name]: numValue }));
       }
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value, ...(name === 'curso' ? { asignatura: '' } : {}) }));
     }
     
     // Limpiar error del campo
@@ -177,6 +180,10 @@ const TextActivityForm = ({
 
     if (!formData.curso) {
       newErrors.curso = 'Debe seleccionar un curso';
+    }
+
+    if (!formData.asignatura) {
+      newErrors.asignatura = 'Debe seleccionar una asignatura';
     }
 
     // Validar tiempo límite si se proporciona
@@ -320,6 +327,22 @@ const TextActivityForm = ({
               ))}
             </select>
             {errors.curso && <span className="error-message">{errors.curso}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="asignatura">Asignatura *</label>
+            <select id="asignatura" name="asignatura" value={formData.asignatura} onChange={handleInputChange} disabled={!formData.curso} className={`form-input ${errors.asignatura ? 'error' : ''}`}>
+              <option value="">Seleccione una asignatura</option>
+              {(cursos.find(item => String(item.id) === String(formData.curso))?.asignaturas || []).map((id, index) => (
+                <option key={id} value={id}>{cursos.find(item => String(item.id) === String(formData.curso))?.asignaturas_nombres?.[index] || `Asignatura ${id}`}</option>
+              ))}
+            </select>
+            {errors.asignatura && <span className="error-message">{errors.asignatura}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="fecha_limite">Fecha límite (opcional)</label>
+            <input type="date" id="fecha_limite" name="fecha_limite" value={formData.fecha_limite} onChange={handleInputChange} className="form-input" />
           </div>
 
           <div className="form-group">

@@ -70,7 +70,7 @@ def crear_actividad_multimedia(request):
                     data[key] = value
 
             # 2. Validar datos con el serializer ANTES de subir a Cloudinary
-            serializer = ActividadMultimediaCreateSerializer(data=data)
+            serializer = ActividadMultimediaCreateSerializer(data=data, context={'request': request})
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -83,6 +83,8 @@ def crear_actividad_multimedia(request):
 
             # 4. Crear actividad con el usuario como parámetro (no en data)
             actividad = serializer.save(creado_por=usuario)
+            from api.services.actividades_service import ActividadesService
+            ActividadesService.crear_asignaciones_iniciales(actividad)
 
             # 5. Crear registro de ActividadMultimedia
             ActividadMultimedia.objects.create(
@@ -133,9 +135,11 @@ def crear_actividad_texto(request):
             data['creado_por'] = usuario.id
 
             # Crear actividad con preguntas usando el serializer
-            serializer = ActividadTextoCreateSerializer(data=data)
+            serializer = ActividadTextoCreateSerializer(data=data, context={'request': request})
             if serializer.is_valid():
                 actividad = serializer.save(creado_por=usuario)
+                from api.services.actividades_service import ActividadesService
+                ActividadesService.crear_asignaciones_iniciales(actividad)
 
                 # Crear registro de ActividadTexto (opcional, solo si hay tiempo límite)
                 tiempo_limite = data.get('tiempo_limite_minutos')

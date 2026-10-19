@@ -23,7 +23,7 @@ from auth.services import autenticar_usuario
 from api.throttling import AuthRateThrottle
 from ..models import Usuario
 from ..permissions import IsAdministrador, IsOwner, IsProfesor
-from ..serializers import UsuarioSerializer, LoginResponseSerializer
+from ..serializers import UsuarioSerializer, UsuarioGestionSerializer, LoginResponseSerializer
 
 
 # ─── Schemas de respuesta reutilizables ──────────────────────────────────────
@@ -165,11 +165,11 @@ def listar_usuarios_por_rol(request):
     usuario = request.user
 
     if usuario.rol == "profesor":
-        usuarios = Usuario.objects.filter(rol="estudiante").order_by("username")
+        usuarios = Usuario.objects.filter(rol="estudiante").prefetch_related("cursos__curso").order_by("username")
     else:
-        usuarios = Usuario.objects.all().order_by("rol", "username")
+        usuarios = Usuario.objects.all().prefetch_related("cursos_asignados", "cursos__curso").order_by("rol", "username")
 
-    serializer = UsuarioSerializer(usuarios, many=True)
+    serializer = UsuarioGestionSerializer(usuarios, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 

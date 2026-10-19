@@ -27,6 +27,29 @@ class ActividadesService:
     """
 
     @classmethod
+    def crear_asignaciones_iniciales(cls, actividad: Actividad) -> int:
+        """Asigna la actividad nueva a estudiantes inscritos en su curso."""
+        profesor = actividad.creado_por
+        if not profesor or profesor.rol != 'profesor':
+            profesor = actividad.curso.profesor
+        if not profesor:
+            return 0
+
+        asignaciones = [
+            AsignacionActividad(
+                actividad=actividad,
+                estudiante_id=estudiante_id,
+                profesor=profesor,
+                estado='asignada',
+            )
+            for estudiante_id in EstudianteCurso.objects.filter(curso=actividad.curso)
+            .values_list('estudiante_id', flat=True)
+        ]
+        if asignaciones:
+            AsignacionActividad.objects.bulk_create(asignaciones, ignore_conflicts=True)
+        return len(asignaciones)
+
+    @classmethod
     def obtener_actividades_profesor_optimizadas(cls, profesor: Usuario) -> List[Dict[str, Any]]:
         """
         Obtiene las actividades de los cursos de un profesor con estadísticas agregadas en 1 sola consulta
@@ -40,7 +63,7 @@ class ActividadesService:
         actividades = (
             Actividad.objects
             .filter(curso__in=cursos_profesor)
-            .select_related('curso', 'creado_por')
+            .select_related('curso', 'asignatura', 'creado_por')
             .annotate(
                 total_asignaciones_calc=Count('asignaciones', distinct=True),
                 completadas_calc=Count(
@@ -83,6 +106,8 @@ class ActividadesService:
                 'estado': act.estado,
                 'curso': act.curso_id,
                 'curso_nombre': act.curso.nombre if act.curso else None,
+                'asignatura': act.asignatura_id,
+                'asignatura_nombre': act.asignatura.nombre if act.asignatura else None,
                 'creado_por': act.creado_por_id,
                 'fecha_creacion': act.fecha_creacion,
                 'estadisticas': {
@@ -337,7 +362,18 @@ class ActividadesService:
         if EstudianteCurso.objects.filter(estudiante=estudiante, curso=curso).exists():
             raise ConflictBusinessException("El estudiante ya está inscrito en este curso.", code="YA_INSCRITO")
 
-        return EstudianteCurso.objects.create(estudiante=estudiante, curso=curso)
+        inscripcion = EstudianteCurso.objects.create(estudiante=estudiante, curso=curso)
+        if curso.profesor_id:
+            AsignacionActividad.objects.bulk_create([
+                AsignacionActividad(
+                    actividad_id=actividad_id,
+                    estudiante=estudiante,
+                    profesor_id=curso.profesor_id,
+                    estado='asignada',
+                )
+                for actividad_id in Actividad.objects.filter(curso=curso).values_list('id', flat=True)
+            ], ignore_conflicts=True)
+        return inscripcion
 
     @classmethod
     @transaction.atomic

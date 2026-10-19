@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createMultimediaActivity } from '../services/activities.service';
 import { getCourses } from '../services/courses.service';
 import QuestionForm from './QuestionForm';
 import './MultimediaActivityForm.css';
+import './ActivityFormModern.css';
 
 const MultimediaActivityForm = ({ 
   curso, 
@@ -17,6 +18,8 @@ const MultimediaActivityForm = ({
     titulo: initialData.titulo || '',
     descripcion: initialData.descripcion || '',
     curso: curso || '',
+    asignatura: initialData.asignatura || '',
+    fecha_limite: initialData.fecha_limite || '',
     preguntas: initialData.preguntas || []
   });
 
@@ -32,32 +35,31 @@ const MultimediaActivityForm = ({
 
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
 
+  const loadCourses = useCallback(async () => {
+    try {
+      const response = await getCourses();
+      setCursos(response.data);
+
+      setFormData(prev => prev.curso || response.data.length === 0
+        ? prev
+        : { ...prev, curso: response.data[0].id });
+    } catch (err) {
+      console.error('Error loading courses:', err);
+      setErrors(prev => ({ ...prev, cursos: 'Error al cargar cursos' }));
+    }
+  }, []);
+
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [loadCourses]);
 
   useEffect(() => {
     if (curso) setFormData((prev) => ({ ...prev, curso: curso.id || curso }));
   }, [curso]);
 
-  const loadCourses = async () => {
-    try {
-      const response = await getCourses();
-      setCursos(response.data);
-      
-      // Si no hay curso seleccionado pero hay cursos disponibles, seleccionar el primero
-      if (!formData.curso && response.data.length > 0) {
-        setFormData(prev => ({ ...prev, curso: response.data[0].id }));
-      }
-    } catch (err) {
-      console.error('Error loading courses:', err);
-      setErrors(prev => ({ ...prev, cursos: 'Error al cargar cursos' }));
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value, ...(name === 'curso' ? { asignatura: '' } : {}) }));
     
     // Limpiar error del campo cuando el usuario empieza a escribir
     if (errors[name]) {
@@ -198,6 +200,10 @@ const MultimediaActivityForm = ({
       newErrors.curso = 'Debe seleccionar un curso';
     }
 
+    if (!formData.asignatura) {
+      newErrors.asignatura = 'Debe seleccionar una asignatura';
+    }
+
     if (!selectedFile) {
       newErrors.archivo = 'Debe seleccionar un archivo multimedia';
     }
@@ -247,6 +253,8 @@ const MultimediaActivityForm = ({
       formDataToSend.append('titulo', formData.titulo);
       formDataToSend.append('descripcion', formData.descripcion);
       formDataToSend.append('curso', formData.curso);
+      formDataToSend.append('asignatura', formData.asignatura);
+      if (formData.fecha_limite) formDataToSend.append('fecha_limite', formData.fecha_limite);
       formDataToSend.append('preguntas', JSON.stringify(formData.preguntas));
       formDataToSend.append('archivo_multimedia', selectedFile);
 
@@ -337,6 +345,22 @@ const MultimediaActivityForm = ({
               ))}
             </select>
             {errors.curso && <span className="error-message">{errors.curso}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="asignatura">Asignatura *</label>
+            <select id="asignatura" name="asignatura" value={formData.asignatura} onChange={handleInputChange} disabled={!formData.curso} className={`form-input ${errors.asignatura ? 'error' : ''}`}>
+              <option value="">Seleccione una asignatura</option>
+              {(cursos.find(item => String(item.id) === String(formData.curso))?.asignaturas || []).map((id, index) => (
+                <option key={id} value={id}>{cursos.find(item => String(item.id) === String(formData.curso))?.asignaturas_nombres?.[index] || `Asignatura ${id}`}</option>
+              ))}
+            </select>
+            {errors.asignatura && <span className="error-message">{errors.asignatura}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="fecha_limite">Fecha límite (opcional)</label>
+            <input type="date" id="fecha_limite" name="fecha_limite" value={formData.fecha_limite} onChange={handleInputChange} className="form-input" />
           </div>
         </div>
 
