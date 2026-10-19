@@ -1,6 +1,8 @@
 import api from './api';
 
 export const getCourses = () => api.get('/api/cursos/');
+export const getSubjects = () => api.get('/api/asignaturas/');
+export const createSubject = (data) => api.post('/api/asignaturas/', data);
 export const createCourse = (data) => api.post('/api/cursos/crear/', data);
 export const updateCourse = (courseId, data) => api.put(`/api/cursos/${courseId}/gestionar/`, data);
 export const deleteCourse = (courseId) => api.delete(`/api/cursos/${courseId}/gestionar/`);

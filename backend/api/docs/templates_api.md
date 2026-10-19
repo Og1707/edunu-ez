@@ -1,4 +1,5 @@
 # API Documentation - Sistema de Plantillas de Actividades
+
 ## Paso 4: Endpoints REST Completos
 
 ### Base URL: `/api/`
@@ -8,9 +9,11 @@
 ## 📋 **Gestión de Plantillas**
 
 ### `GET /api/plantillas/`
+
 **Listar todas las plantillas disponibles**
 
 **Response:**
+
 ```json
 {
   "plantillas": {
@@ -49,14 +52,17 @@
 ---
 
 ### `GET /api/plantillas/preview/`
+
 **Previsualizar estructura de actividad multimedia**
 
 **Query Parameters:**
+
 - `titulo` (string): Título de ejemplo
-- `descripcion` (string): Descripción de ejemplo  
+- `descripcion` (string): Descripción de ejemplo
 - `preguntas` (string): JSON de preguntas
 
 **Response:**
+
 ```json
 {
   "valido": true,
@@ -72,9 +78,11 @@
 ## 🎬 **Creación de Actividades Multimedia**
 
 ### `POST /api/actividades-multimedia/`
+
 **Crear actividad multimedia con archivo**
 
 **Request:** `multipart/form-data`
+
 - `titulo` (string): Título de la actividad
 - `descripcion` (string): Descripción
 - `curso` (integer): ID del curso
@@ -82,6 +90,7 @@
 - `archivo_multimedia` (file): Archivo (image/video/audio)
 
 **Response:**
+
 ```json
 {
   "mensaje": "Actividad multimedia creada exitosamente",
@@ -105,9 +114,11 @@
 ## 📝 **Creación de Actividades de Texto**
 
 ### `POST /api/actividades-texto/`
+
 **Crear actividad de texto con tiempo límite**
 
 **Request:** `application/json`
+
 ```json
 {
   "titulo": "Actividad de Matemáticas",
@@ -133,15 +144,18 @@
 ## 🔍 **Búsqueda y Gestión**
 
 ### `GET /api/actividades/buscar/`
+
 **Buscar actividades con filtros**
 
 **Query Parameters:**
+
 - `q` (string): Término de búsqueda
 - `template_type` (string): multimedia/texto/legacy
 - `curso_id` (integer): ID del curso
 - `page` (integer): Número de página
 
 **Response (paginado):**
+
 ```json
 {
   "count": 25,
@@ -157,9 +171,11 @@
 ```
 
 ### `POST /api/actividades/{id}/duplicar/`
+
 **Duplicar una actividad existente**
 
 **Response:**
+
 ```json
 {
   "mensaje": "Actividad duplicada exitosamente",
@@ -173,9 +189,11 @@
 ## 📊 **Gestión de Preguntas**
 
 ### `POST /api/actividades/{actividad_id}/preguntas/`
+
 **Agregar pregunta a actividad existente**
 
 **Request:** `application/json`
+
 ```json
 {
   "enunciado": "Nueva pregunta",
@@ -188,6 +206,7 @@
 ```
 
 ### `DELETE /api/preguntas/{pregunta_id}/eliminar/`
+
 **Eliminar pregunta específica**
 
 ---
@@ -195,9 +214,11 @@
 ## 📈 **Estadísticas y Utilidades**
 
 ### `GET /api/plantillas/estadisticas/`
+
 **Estadísticas de uso de plantillas (solo admin)**
 
 **Response:**
+
 ```json
 {
   "generales": {
@@ -220,9 +241,11 @@
 ```
 
 ### `GET /api/cloudinary/firma/`
+
 **Obtener firma para uploads directos**
 
 **Response:**
+
 ```json
 {
   "signature": "abc123...",
@@ -237,9 +260,11 @@
 ## 🔗 **Endpoints Existentes (Integrados)**
 
 ### `GET /api/actividades/{id}/completo/`
+
 **Obtener actividad completa con preguntas**
 
 ### `GET /api/actividades/por-plantilla/`
+
 **Filtrar actividades por tipo de plantilla**
 
 ---
@@ -250,6 +275,7 @@
 - **Session Authentication**: Cookies de sesión Django
 
 **Permisos por rol:**
+
 - **Profesor**: Crear/editar sus actividades, ver sus cursos
 - **Administrador**: CRUD completo, estadísticas, todas las actividades
 - **Estudiante**: Solo ver actividades asignadas
@@ -259,6 +285,7 @@
 ## 📝 **Formato de Preguntas**
 
 ### Estructura JSON para preguntas:
+
 ```json
 {
   "enunciado": "Texto de la pregunta",
@@ -279,6 +306,7 @@
 ```
 
 **Reglas de validación:**
+
 - Mínimo 2 opciones por pregunta
 - Exactamente 1 opción correcta
 - Orden obligatorio para preguntas y opciones
@@ -288,12 +316,14 @@
 ## 🚀 **Próximos Pasos**
 
 **Paso 5:** Componentes React
+
 - `TemplateSelector.jsx` - Selector de plantillas
 - `MultimediaActivityForm.jsx` - Formulario multimedia
 - `TextActivityForm.jsx` - Formulario de texto
 - `ActivityPreview.jsx` - Previsualización
 
 **Paso 6:** Integración en `AddActivity.jsx`
+
 - Integración con sistema existente
 - Gestión de estado
 - Navegación entre plantillas

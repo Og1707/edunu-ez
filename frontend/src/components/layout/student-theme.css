@@ -1,0 +1,67 @@
+/* Visual foundation scoped to the student experience. */
+.student-layout {
+  --student-indigo: #4f46e5;
+  --student-sky: #38bdf8;
+  --student-mint: #10b981;
+  --student-amber: #f59e0b;
+  --student-background: #f8fafc;
+  --student-foreground: #0f172a;
+  --student-surface: #ffffff;
+  --student-border: #e2e8f0;
+  --student-muted: #475569;
+
+  color: var(--student-foreground);
+  background: var(--student-background);
+  font-family: var(--font-family-base);
+}
+
+.student-layout__workspace,
+.student-layout__content {
+  background: var(--student-background);
+}
+
+.student-layout__header,
+.student-sidebar,
+.student-mobile-nav {
+  border-color: var(--student-border);
+  background: var(--student-surface);
+}
+
+.student-layout .layout-brand__mark {
+  background: var(--student-indigo);
+}
+
+.student-layout .layout-nav__link:hover,
+.student-layout .layout-nav__link.is-active,
+.student-mobile-nav__link.is-active {
+  color: var(--student-indigo);
+  background: #eef2ff;
+}
+
+.student-layout .layout-nav__link:focus-visible,
+.student-layout .layout-logout:focus-visible,
+.student-layout .layout-menu-toggle:focus-visible,
+.student-layout .student-mobile-nav__link:focus-visible {
+  outline: 3px solid var(--student-indigo);
+  outline-offset: 2px;
+}
+
+.student-layout__content .dashboard-page {
+  color: var(--student-foreground);
+}
+
+.student-layout__content .dashboard-page__header p,
+.student-layout__content .dashboard-page__link-card p {
+  color: var(--student-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-layout *,
+  .student-layout *::before,
+  .student-layout *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

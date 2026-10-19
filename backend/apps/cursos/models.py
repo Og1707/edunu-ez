@@ -2,6 +2,20 @@ from django.db import models
 from apps.usuarios.models import Usuario
 
 
+class Asignatura(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    creada_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'api_asignatura'
+        ordering = ['nombre']
+        verbose_name = 'Asignatura'
+        verbose_name_plural = 'Asignaturas'
+
+    def __str__(self):
+        return self.nombre
+
+
 class Curso(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
@@ -11,6 +25,11 @@ class Curso(models.Model):
         null=True,
         limit_choices_to={'rol': 'profesor'},
         related_name='cursos_asignados'
+    )
+    asignaturas = models.ManyToManyField(
+        Asignatura,
+        blank=True,
+        related_name='cursos',
     )
 
     class Meta:

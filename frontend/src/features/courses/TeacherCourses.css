@@ -1,0 +1,43 @@
+.teacher-courses { width: min(100%, 82rem); margin: 0 auto; color: var(--color-neutral-900); }
+.teacher-courses__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.25rem; margin-bottom: 1.4rem; }
+.teacher-courses__eyebrow { color: var(--color-primary-700); font-size: .76rem; font-weight: 750; letter-spacing: .055em; text-transform: uppercase; }
+.teacher-courses__header h1 { margin: .3rem 0; font-size: clamp(1.7rem, 3vw, 2.25rem); letter-spacing: -.03em; }
+.teacher-courses__header p { margin: 0; color: var(--color-neutral-600); line-height: 1.5; }
+.teacher-courses__search { display: flex; width: min(100%, 19rem); min-height: 2.75rem; align-items: center; gap: .55rem; padding: .5rem .75rem; border: 1px solid var(--color-neutral-300); border-radius: var(--radius-md); color: var(--color-neutral-500); background: white; }
+.teacher-courses__search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--color-neutral-900); background: transparent; font: inherit; }
+.teacher-courses__search:focus-within { border-color: var(--color-primary-500); box-shadow: var(--shadow-focus); }
+.teacher-courses__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1rem; }
+.teacher-course-card { min-width: 0; padding: 1.2rem; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-xl); background: white; box-shadow: var(--shadow-sm); transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+.teacher-course-card:hover { border-color: var(--color-primary-200); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.teacher-course-card__topline { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.teacher-course-card__icon { display: grid; width: 2.7rem; height: 2.7rem; place-items: center; border-radius: .85rem; color: var(--color-primary-700); background: var(--color-primary-50); }
+.teacher-course-card__badge { border-radius: 99px; padding: .3rem .6rem; color: #166534; background: #dcfce7; font-size: .72rem; font-weight: 700; }
+.teacher-course-card h2 { margin: .9rem 0 .35rem; font-size: 1.18rem; }
+.teacher-course-card__description { min-height: 2.8rem; margin: 0; color: var(--color-neutral-600); font-size: .88rem; line-height: 1.5; white-space: pre-wrap; }
+.teacher-course-card__subjects { display: flex; min-height: 2.3rem; flex-wrap: wrap; align-items: flex-start; gap: .4rem; margin: .9rem 0 1rem; }
+.teacher-course-card__subject { border-radius: 99px; padding: .3rem .6rem; color: var(--color-primary-800); background: var(--color-primary-50); font-size: .76rem; font-weight: 650; }
+.teacher-course-card__no-subjects { color: var(--color-neutral-500); font-size: .8rem; }
+.teacher-course-card__students-toggle { display: flex; width: 100%; min-height: 2.75rem; align-items: center; justify-content: space-between; gap: .6rem; padding: .65rem .75rem; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-md); color: var(--color-primary-800); background: white; font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
+.teacher-course-card__students-toggle span { display: inline-flex; align-items: center; gap: .5rem; }
+.teacher-course-card__students-toggle:hover { border-color: var(--color-primary-300); background: var(--color-primary-50); }
+.teacher-course-card__students-toggle:focus-visible,.teacher-course-card__retry:focus-visible { outline: 3px solid var(--color-primary-500); outline-offset: 2px; }
+.teacher-course-card__students-toggle[aria-expanded="true"] > svg { transform: rotate(180deg); }
+.teacher-course-card__student-panel { margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--color-neutral-200); }
+.teacher-course-card__student-panel h3 { margin: 0 0 .6rem; color: var(--color-neutral-700); font-size: .88rem; }
+.teacher-course-card__student-panel ul { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.teacher-course-card__student-panel li { display: flex; min-width: 0; align-items: center; gap: .65rem; padding: .45rem 0; }
+.teacher-course-card__student-panel li > span:last-child { display: grid; min-width: 0; gap: .1rem; }
+.teacher-course-card__student-panel li strong { overflow: hidden; font-size: .84rem; text-overflow: ellipsis; white-space: nowrap; }
+.teacher-course-card__student-panel li small { color: var(--color-neutral-500); font-size: .74rem; }
+.teacher-course-card__avatar { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 50%; color: var(--color-primary-800); background: var(--color-primary-100); font-size: .8rem; font-weight: 750; }
+.teacher-course-card__student-panel > p,.teacher-course-card__student-panel [role="status"] { margin: .25rem 0; color: var(--color-neutral-600); font-size: .84rem; }
+.teacher-course-card__error { margin: .25rem 0 .5rem; color: #991b1b; font-size: .84rem; }
+.teacher-course-card__retry { min-height: 2.5rem; padding: .45rem .7rem; border: 0; border-radius: var(--radius-md); color: white; background: var(--color-primary-700); font: inherit; cursor: pointer; }
+.teacher-courses__state,.teacher-courses__empty { padding: 2.5rem 1rem; border: 1px dashed var(--color-neutral-300); border-radius: var(--radius-xl); color: var(--color-neutral-600); text-align: center; }
+.teacher-courses__empty > span { display: inline-grid; width: 3rem; height: 3rem; place-items: center; border-radius: 1rem; color: var(--color-primary-700); background: var(--color-primary-50); }
+.teacher-courses__empty h2 { margin: .8rem 0 .3rem; color: var(--color-neutral-900); font-size: 1.05rem; }
+.teacher-courses__empty p { margin: 0; font-size: .88rem; }
+.teacher-courses__error { padding: .75rem 1rem; border-radius: var(--radius-md); color: #991b1b; background: var(--color-error-muted); }
+.teacher-courses__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (max-width: 700px) { .teacher-courses__header { align-items: stretch; flex-direction: column; }.teacher-courses__search { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .teacher-course-card,.teacher-course-card__students-toggle,.teacher-course-card__students-toggle > svg { transition: none; } }

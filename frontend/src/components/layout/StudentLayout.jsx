@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { BookOpen, Gamepad2, LayoutDashboard, LogOut, Menu, Trophy, X } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 import './layouts.css';
+import './student-theme.css';
 
 const studentItems = [
   { label: 'Mi inicio', to: '/dashboard', icon: LayoutDashboard, end: true },
@@ -16,10 +17,6 @@ export default function StudentLayout() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const displayName = user?.nombre_completo || user?.username || 'Estudiante';
-  const experience = user?.puntos_xp ?? user?.xp;
-  const experienceLabel = experience == null ? 'XP no disponible' : `${experience} XP`;
-  const level = Number(user?.nivel ?? 1);
-
   const handleLogout = () => { logout(); navigate('/', { replace: true }); };
   useEffect(() => {
     const closeOnEscape = (event) => { if (event.key === 'Escape') setMenuOpen(false); };
@@ -34,13 +31,13 @@ export default function StudentLayout() {
       <NavLink className="layout-brand" to="/dashboard"><span className="layout-brand__mark" aria-hidden="true">E</span><span>EduNúñez</span></NavLink>
       <nav className="layout-nav" aria-label="Navegación principal">{studentItems.map(({ label, to, icon: Icon, end }) => <NavLink key={to} to={to} end={end} onClick={() => setMenuOpen(false)} className={({ isActive }) => `layout-nav__link${isActive ? ' is-active' : ''}`}><Icon size={19} aria-hidden="true"/><span>{label}</span></NavLink>)}</nav>
       <div className="student-sidebar__footer">
-        <div className="student-xp" aria-label={`${experienceLabel}, nivel ${level}`}><Trophy size={18} aria-hidden="true"/><span><strong>{experienceLabel}</strong><small>Nivel {level}</small></span></div>
+
         <div className="layout-user-footer__identity"><span className="layout-avatar" aria-hidden="true">{displayName.charAt(0).toUpperCase()}</span><strong>{displayName}</strong></div>
         <button className="layout-logout" type="button" onClick={handleLogout}><LogOut size={18} aria-hidden="true"/><span>Cerrar sesión</span></button>
       </div>
     </aside>
     <div className="student-layout__workspace">
-      <header className="student-layout__header" aria-label="Cabecera del panel"><div><span className="student-layout__eyebrow">¡Sigue aprendiendo!</span><strong>{displayName}</strong></div><div className="student-xp student-xp--compact" aria-label={`${experienceLabel}, nivel ${level}`}><Trophy size={18} aria-hidden="true"/><strong>{experienceLabel} · Nivel {level}</strong></div></header>
+      <header className="student-layout__header" aria-label="Cabecera del panel"><div><span className="student-layout__eyebrow">¡Sigue aprendiendo!</span><strong>{displayName}</strong></div></header>
       <main className="student-layout__content"><Outlet /></main>
     </div>
     <nav className="student-mobile-nav" aria-label="Navegación principal">{studentItems.map(({ label, to, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `student-mobile-nav__link${isActive ? ' is-active' : ''}`}><Icon size={19} aria-hidden="true"/><span>{label}</span></NavLink>)}</nav>

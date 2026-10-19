@@ -1,5 +1,6 @@
 from django.urls import path
 from .views.health import health_check
+from .views.dashboard import dashboard_summary, dashboard_student_detail
 from .views.auth import (
     registrar_usuario,
     login_usuario,
@@ -9,6 +10,7 @@ from .views.auth import (
     gestionar_perfil_propio,
 )
 from .views.cursos import (
+    gestionar_asignaturas,
     listar_cursos,
     crear_curso,
     gestionar_curso_especifico,
@@ -67,6 +69,8 @@ from .views.templates_rest import (
 
 
 urlpatterns = [
+    path('dashboard/resumen/', dashboard_summary, name='dashboard_resumen'),
+    path('dashboard/estudiantes/<int:student_id>/', dashboard_student_detail, name='dashboard_estudiante_detalle'),
     path('health/', health_check, name='health_check'),
     path('registro/', registrar_usuario, name='registro_usuario'),
     path('login/', login_usuario, name='login_usuario'),
@@ -75,6 +79,7 @@ urlpatterns = [
     path('actividades/profesor/', obtener_actividades_profesor, name='obtener_actividades_profesor'),
     path('cursos/', listar_cursos, name='listar_cursos'),
     path('cursos/crear/', crear_curso, name='crear_curso'),
+    path('asignaturas/', gestionar_asignaturas, name='gestionar_asignaturas'),
     path('tipos-actividad/', obtener_tipos_actividad, name='tipos_actividad'),
     # Nuevos endpoints para Wikipedia API
     path('wikipedia/contenido/', obtener_contenido_wikipedia, name='wikipedia_contenido'),

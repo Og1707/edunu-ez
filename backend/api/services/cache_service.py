@@ -25,7 +25,7 @@ class CacheService:
     KEY_NIVELES_EDUCATIVOS = "catalogo:niveles_educativos"
     KEY_TEMAS_SUGERIDOS_PREFIX = "catalogo:temas:"
     KEY_CATEGORIAS_JUEGOS = "catalogo:categorias_juegos"
-    KEY_CURSOS_PUBLICOS = "catalogo:cursos_publicos"
+    KEY_CURSOS_PUBLICOS = "catalogo:cursos_publicos:v2"
 
     @classmethod
     def get(cls, key: str) -> Optional[Any]:

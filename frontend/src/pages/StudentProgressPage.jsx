@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Award, Flame, Star, Trophy } from 'lucide-react';
-import useAuth from '../hooks/useAuth';
 import { getStudentActivities, getStudentStats } from '../services/games.service';
 import StatCard from '../components/ui/StatCard';
 import EmptyState from '../components/ui/EmptyState';
@@ -12,7 +11,6 @@ const completed = (activity) => Boolean(
 );
 
 export default function StudentProgressPage() {
-  const { user } = useAuth();
   const [activities, setActivities] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,15 +39,12 @@ export default function StudentProgressPage() {
     { label: 'Por vencer', value: Number(stats?.actividades_por_vencer || 0), color: 'due' },
   ];
   const maxValue = Math.max(1, ...chart.map((item) => item.value));
-  const experience = user?.puntos_xp ?? user?.xp;
-
   return <main className="student-progress">
     <header className="student-progress__header"><div><span className="student-progress__eyebrow">Tu recorrido de aprendizaje</span><h1>Mi progreso</h1><p>Revisa tus actividades terminadas y cómo avanzas.</p></div><span className="student-progress__trophy" aria-hidden="true"><Trophy size={28}/></span></header>
     {error && <p className="student-progress__error" role="alert">{error}</p>}
     {loading ? <p className="student-progress__loading" role="status">Cargando tu progreso…</p> : <>
       <section className="student-progress__metrics" aria-label="Resumen de progreso">
         <StatCard label="Actividades completadas" value={stats?.actividades_completadas ?? 0} icon={<Activity/>} description={`${stats?.porcentaje_completado ?? 0}% de tus actividades`} />
-        <StatCard label="Puntos XP acumulados" value={experience == null ? 'No disponible' : `${experience} XP`} icon={<Star/>} description={experience == null ? 'Este dato aún no está disponible en el servicio.' : 'Experiencia acumulada'} />
         <StatCard label="Racha activa" value="No disponible" icon={<Flame/>} description="El servicio todavía no registra días de racha." />
       </section>
       <div className="student-progress__columns">

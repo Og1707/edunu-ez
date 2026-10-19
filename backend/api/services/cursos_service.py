@@ -4,14 +4,13 @@ Encapsula transacciones atómicas, optimizaciones de consultas y caching con Red
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from django.db import transaction
 from django.db.models import Count
 
-from api.models import Curso, Usuario, MateriaCienciasNaturales, CursoCienciasNaturales
+from api.models import Asignatura, Curso, Usuario, MateriaCienciasNaturales, CursoCienciasNaturales
 from api.exceptions import (
     ResourceNotFoundException,
-    PermissionDeniedBusinessException,
     BusinessValidationException
 )
 from api.services.cache_service import CacheService
@@ -28,16 +27,10 @@ class CursosService:
     def listar_cursos_optimizados(cls) -> List[Dict[str, Any]]:
         """Lista todos los cursos con select_related hacia el profesor y caching en Redis."""
         def _fetch_from_db():
-            cursos = Curso.objects.select_related('profesor').all().order_by('nombre')
+            cursos = Curso.objects.select_related('profesor').prefetch_related('asignaturas').all().order_by('nombre')
             return [
-                {
-                    'id': c.id,
-                    'nombre': c.nombre,
-                    'descripcion': c.descripcion,
-                    'profesor': c.profesor_id,
-                    'profesor_nombre': c.profesor.nombre_completo if c.profesor else None,
-                }
-                for c in cursos
+                cls._serializar_curso(curso)
+                for curso in cursos
             ]
 
         return CacheService.get_or_set(
@@ -45,6 +38,19 @@ class CursosService:
             _fetch_from_db,
             timeout=CacheService.TTL_LISTADOS
         )
+
+    @staticmethod
+    def _serializar_curso(curso: Curso) -> Dict[str, Any]:
+        asignaturas = list(curso.asignaturas.all())
+        return {
+            'id': curso.id,
+            'nombre': curso.nombre,
+            'descripcion': curso.descripcion,
+            'profesor': curso.profesor_id,
+            'profesor_nombre': curso.profesor.nombre_completo if curso.profesor else None,
+            'asignaturas': [asignatura.id for asignatura in asignaturas],
+            'asignaturas_nombres': [asignatura.nombre for asignatura in asignaturas],
+        }
 
     @classmethod
     @transaction.atomic
@@ -70,9 +76,35 @@ class CursosService:
             descripcion=datos.get('descripcion', ''),
             profesor=profesor
         )
+        asignaturas = cls._obtener_asignaturas(datos.get('asignaturas', []))
+        curso.asignaturas.set(asignaturas)
 
         CacheService.invalidar_cursos()
         return curso
+
+    @staticmethod
+    def _obtener_asignaturas(asignatura_ids):
+        if asignatura_ids is None:
+            return []
+        if not isinstance(asignatura_ids, (list, tuple)):
+            raise BusinessValidationException(
+                "Las asignaturas deben enviarse como una lista de identificadores.",
+                code="ASIGNATURAS_INVALIDAS",
+            )
+        try:
+            ids = [int(asignatura_id) for asignatura_id in asignatura_ids]
+        except (TypeError, ValueError):
+            raise BusinessValidationException(
+                "Cada asignatura debe tener un identificador válido.",
+                code="ASIGNATURA_ID_INVALIDO",
+            )
+        asignaturas = list(Asignatura.objects.filter(id__in=set(ids)))
+        if len(asignaturas) != len(set(ids)):
+            raise ResourceNotFoundException(
+                "Una o más asignaturas no existen.",
+                code="ASIGNATURA_NO_ENCONTRADA",
+            )
+        return asignaturas
 
     @classmethod
     @transaction.atomic
@@ -146,7 +178,7 @@ class CursosService:
             profesor=usuario if usuario.rol == 'profesor' else None
         )
 
-        curso_ciencias = CursoCienciasNaturales.objects.create(
+        CursoCienciasNaturales.objects.create(
             curso=curso,
             materia=materia,
             unidades_tematicas=datos.get('unidades_tematicas', []),
@@ -157,6 +189,8 @@ class CursosService:
                 'examenes': 50
             }
         )
+        asignatura, _ = Asignatura.objects.get_or_create(nombre=materia.nombre)
+        curso.asignaturas.add(asignatura)
 
         CacheService.invalidar_cursos()
 

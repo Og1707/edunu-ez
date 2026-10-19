@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPanel - Rendimiento de Estudiantes</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Librerías Externas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- TOPBAR PARA DISPOSITIVOS MÓVILES Y TABLETS -->
+  <div class="mobile-topbar">
+    <div class="mobile-topbar-left">
+      <button class="mobile-toggle-btn" id="toggleSidebarBtn" aria-label="Abrir Menú de Navegación">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="sidebar-brand" style="margin:0;">
+        <div class="sidebar-logo" style="width:30px;height:30px;">
+          <i data-lucide="graduation-cap" style="width:16px;height:16px;"></i>
+        </div>
+        <span class="sidebar-title" style="font-size:14px;">EduPanel</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="bell-btn" id="mobileNotifBtn" title="Notificaciones">
+        <i data-lucide="bell"></i>
+        <span class="bell-dot"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">
+          <i data-lucide="graduation-cap"></i>
+        </div>
+        <span class="sidebar-title">EduPanel</span>
+      </div>
+
+      <nav class="nav-group">
+        <button class="nav-item active" data-view="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-view="estudiantes">
+          <i data-lucide="users"></i>
+          <span>Estudiantes</span>
+        </button>
+        <button class="nav-item" data-view="cursos">
+          <i data-lucide="book-open"></i>
+          <span>Cursos</span>
+        </button>
+        <button class="nav-item" data-view="rendimiento">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Rendimiento Académico</span>
+        </button>
+        <button class="nav-item" data-view="actividades">
+          <i data-lucide="check-square"></i>
+          <span>Actividades</span>
+        </button>
+        <button class="nav-item" data-view="reportes">
+          <i data-lucide="file-text"></i>
+          <span>Reportes</span>
+        </button>
+      </nav>
+
+      <div class="nav-bottom">
+        <button class="nav-item" data-view="configuracion">
+          <i data-lucide="settings"></i>
+          <span>Configuración</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===================== CONTENIDO PRINCIPAL ===================== -->
+    <div class="main-wrap">
+      <main class="content">
+
+        <!-- HEADER PRINCIPAL -->
+        <header class="header">
+          <div class="header-left">
+            <h1 class="header-title" id="pageMainTitle">Rendimiento de Estudiantes</h1>
+            <div class="action-btn-wrap">
+              <div class="period-pill" id="headerPeriodBtn" title="Cambiar Período">
+                <span>Período Académico: <b id="headerPeriodLabel">2026-1</b></span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+
+              <!-- Menú Desplegable de Período Académico -->
+              <div class="dropdown-menu" id="headerPeriodDropdown" style="width:220px;left:0;right:auto;">
+                <div class="dropdown-header">
+                  <span>Seleccionar Período</span>
+                </div>
+                <div class="dropdown-list">
+                  <div class="dropdown-item period-opt active" data-period="2026-1">
+                    <div style="font-weight:600;">Período 2026-1</div>
+                    <div style="font-size:10.5px;color:var(--text-muted);">Ene - Jul 2026 (En Curso)</div>
+                  </div>
+                  <div class="dropdown-item period-opt" data-period="2025-2">
+                    <div style="font-weight:600;">Período 2025-2</div>
+                    <div style="font-size:10.5px;color:var(--text-muted);">Ago - Dic 2025 (Cerrado)</div>
+                  </div>
+                  <div class="dropdown-item period-opt" data-period="2025-1">
+                    <div style="font-weight:600;">Período 2025-1</div>
+                    <div style="font-size:10.5px;color:var(--text-muted);">Ene - Jul 2025 (Cerrado)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <!-- Buscador Global -->
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="searchInput" placeholder="Buscar estudiante o curso...">
+            </div>
+
+            <!-- Notificaciones -->
+            <div class="action-btn-wrap">
+              <button class="bell-btn" id="notifBtn" title="Notificaciones Académicas">
+                <i data-lucide="bell"></i>
+                <span class="bell-dot"></span>
+              </button>
+
+              <div class="dropdown-menu" id="notifDropdown">
+                <div class="dropdown-header">
+                  <span>Notificaciones</span>
+                  <button id="markAllReadBtn" style="font-size:10.5px;color:var(--blue);font-weight:600;">Marcar leídas</button>
+                </div>
+                <div class="dropdown-list">
+                  <div class="dropdown-item unread">
+                    <div class="dropdown-item-title">
+                      <span>Alerta de Rendimiento</span>
+                      <span class="mini-badge atencion">Riesgo</span>
+                    </div>
+                    <div class="dropdown-item-desc">María Ramírez (10° A) bajó su promedio a 62% en Inglés.</div>
+                    <div class="dropdown-item-time">Hace 15 minutos</div>
+                  </div>
+                  <div class="dropdown-item unread">
+                    <div class="dropdown-item-title">
+                      <span>Actividad Cerrada</span>
+                      <span class="mini-badge bueno">Completado</span>
+                    </div>
+                    <div class="dropdown-item-desc">Álgebra básica ha finalizado con 91% de participación.</div>
+                    <div class="dropdown-item-time">Hace 2 horas</div>
+                  </div>
+                  <div class="dropdown-item">
+                    <div class="dropdown-item-title">
+                      <span>Cierre de Período</span>
+                      <span class="mini-badge excelente">Aviso</span>
+                    </div>
+                    <div class="dropdown-item-desc">El período 2026-1 finaliza el 31 de Julio.</div>
+                    <div class="dropdown-item-time">Ayer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Perfil de Usuario -->
+            <div class="action-btn-wrap">
+              <div class="profile-mini" id="userProfileBtn">
+                <div class="avatar-sm">AR</div>
+                <div class="profile-mini-text">
+                  <span class="pname">Ana Ramírez</span>
+                  <span class="prole">Coordinadora Académica</span>
+                </div>
+                <i data-lucide="chevron-down" class="chev"></i>
+              </div>
+
+              <div class="dropdown-menu" id="userDropdown" style="width:200px;">
+                <div class="dropdown-header">
+                  <span>Mi Cuenta</span>
+                </div>
+                <div class="dropdown-list">
+                  <div class="dropdown-item" id="userProfileOpt">
+                    <span style="font-weight:600;">Perfil de Coordinador</span>
+                    <span style="font-size:11px;color:var(--text-muted);">ana.ramirez@edupanel.edu</span>
+                  </div>
+                  <div class="dropdown-item" id="systemPrefOpt">
+                    <span style="font-weight:600;">Preferencias</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </header>
+
+        <!-- BARRA DE FILTROS INTERACTIVOS -->
+        <section class="filters" aria-label="Filtros del sistema">
+          <div class="filter-item action-btn-wrap">
+            <label>Rango de Fechas</label>
+            <button class="filter-date-btn" id="filterDateBtn" type="button" title="Seleccionar Rango de Fechas">
+              <i data-lucide="calendar"></i>
+              <span id="fDatesText">01/01/2026 - 31/07/2026</span>
+              <i data-lucide="chevron-down" style="width:12px;height:12px;margin-left:4px;color:var(--text-muted);"></i>
+            </button>
+
+            <!-- Menú Desplegable del Segmentador de Fechas -->
+            <div class="dropdown-menu date-range-popover" id="dateRangeDropdown">
+              <div class="dropdown-header">
+                <span>Segmentar por Fechas</span>
+              </div>
+              <div class="date-preset-list">
+                <button class="date-preset-btn active" data-preset="all">Todo el Período (Ene - Jul 2026)</button>
+                <button class="date-preset-btn" data-preset="t1">Primer Trimestre (Ene - Mar)</button>
+                <button class="date-preset-btn" data-preset="t2">Segundo Trimestre (Abr - Jun)</button>
+                <button class="date-preset-btn" data-preset="last30">Último Mes (Julio 2026)</button>
+              </div>
+              <div class="date-custom-inputs">
+                <div class="date-input-group">
+                  <label for="dateFromInput">Desde:</label>
+                  <input type="date" id="dateFromInput" value="2026-01-01" min="2025-01-01" max="2026-12-31">
+                </div>
+                <div class="date-input-group">
+                  <label for="dateToInput">Hasta:</label>
+                  <input type="date" id="dateToInput" value="2026-07-31" min="2025-01-01" max="2026-12-31">
+                </div>
+              </div>
+              <div class="date-popover-footer">
+                <button class="btn-secondary" id="cancelDateBtn" style="padding:4px 10px;font-size:11px;">Cerrar</button>
+                <button class="btn-primary" id="applyCustomDateBtn" style="padding:4px 12px;font-size:11px;">Aplicar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-item">
+            <label for="fPeriodSelect">Período</label>
+            <div class="filter-select-wrap">
+              <select class="filter-select" id="fPeriodSelect">
+                <option value="2026-1" selected>2026-1</option>
+                <option value="2025-2">2025-2</option>
+                <option value="2025-1">2025-1</option>
+              </select>
+              <i data-lucide="chevron-down" class="filter-select-icon"></i>
+            </div>
+          </div>
+
+          <div class="filter-item">
+            <label for="fCourseSelect">Curso</label>
+            <div class="filter-select-wrap">
+              <select class="filter-select" id="fCourseSelect">
+                <option value="ALL">Todos los Cursos</option>
+                <option value="10° A" selected>10° A</option>
+                <option value="10° B">10° B</option>
+                <option value="11° A">11° A</option>
+              </select>
+              <i data-lucide="chevron-down" class="filter-select-icon"></i>
+            </div>
+          </div>
+
+          <div class="filter-item">
+            <label for="fGradeSelect">Grado</label>
+            <div class="filter-select-wrap">
+              <select class="filter-select" id="fGradeSelect">
+                <option value="ALL">Todos los Grados</option>
+                <option value="Secundaria" selected>Secundaria</option>
+                <option value="Primaria">Primaria</option>
+              </select>
+              <i data-lucide="chevron-down" class="filter-select-icon"></i>
+            </div>
+          </div>
+
+          <div class="filter-item">
+            <label for="fStudentSelect">Estudiante</label>
+            <div class="filter-select-wrap">
+              <select class="filter-select" id="fStudentSelect">
+                <option value="ALL">Todos los Estudiantes</option>
+              </select>
+              <i data-lucide="chevron-down" class="filter-select-icon"></i>
+            </div>
+          </div>
+
+          <button class="clear-filters-btn" id="clearFiltersBtn">
+            <i data-lucide="rotate-ccw"></i>Limpiar Filtros
+          </button>
+        </section>
+
+        <!-- =========================================================
+             VISTA 1: DASHBOARD GENERAL (PRINCIPAL)
+             ========================================================= -->
+        <div class="view-section active-view" id="view-dashboard">
+
+          <!-- KPI CARDS -->
+          <section class="kpi-grid" aria-label="Métricas Principales">
+            <div class="kpi-card">
+              <div class="kpi-label">Promedio General</div>
+              <div class="kpi-value" id="kpiPromedio">84.3%</div>
+              <div class="kpi-trend up"><i data-lucide="arrow-up"></i><span>3.1%</span></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Estudiantes Activos</div>
+              <div class="kpi-value" id="kpiEstudiantes">125</div>
+              <div class="kpi-trend" style="color:var(--text-muted);"><span>Matriculados</span></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Tasa de Aprobación</div>
+              <div class="kpi-value" id="kpiAprobacion">91%</div>
+              <div class="kpi-trend up"><i data-lucide="arrow-up"></i><span>1.5%</span></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Actividades Realizadas</div>
+              <div class="kpi-value" id="kpiRealizadas">2,150</div>
+              <div class="kpi-trend up"><i data-lucide="arrow-up"></i><span>+180 esta semana</span></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Actividades Pendientes</div>
+              <div class="kpi-value" id="kpiPendientes">48</div>
+              <div class="kpi-trend down"><i data-lucide="clock"></i><span>Por evaluar</span></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-label">Rendimiento Esperado</div>
+              <div class="kpi-value" id="kpiRendimiento">86%</div>
+              <div class="kpi-trend up"><i data-lucide="arrow-up"></i><span>2.2% vs meta</span></div>
+            </div>
+          </section>
+
+          <!-- MAIN CHART & COURSE BLOCKS -->
+          <div class="row-main">
+            <div class="card chart-card">
+              <div class="card-header-flex">
+                <h2 class="card-title">Rendimiento Académico por Curso</h2>
+                <span class="card-subtitle">Promedio ponderado por asignatura</span>
+              </div>
+              <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card course-perf-card">
+              <h2 class="card-title">Rendimiento por Asignatura</h2>
+              <div class="course-block green">
+                <span class="cname">Matemáticas</span>
+                <span class="cval">92%</span>
+              </div>
+              <div class="course-block blue">
+                <span class="cname">Lenguaje</span>
+                <span class="cval">88%</span>
+              </div>
+              <div class="course-block red">
+                <span class="cname">Inglés</span>
+                <span class="cval">76%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOWER ROW: TABLE & GAUGES -->
+          <div class="row-lower">
+            <div class="card table-card">
+              <div class="card-header-flex">
+                <h2 class="card-title">Rendimiento de Estudiantes</h2>
+                <span class="card-subtitle" id="tableCountLabel">5 estudiantes listados</span>
+              </div>
+              <div class="table-responsive">
+                <table class="students-table" id="studentsTable">
+                  <thead>
+                    <tr>
+                      <th>Estudiante</th>
+                      <th>Curso/Grupo</th>
+                      <th>Promedio</th>
+                      <th>Actividades</th>
+                      <th>Aciertos</th>
+                      <th>Fallos</th>
+                      <th>Tendencia</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="studentsTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card activity-detail-card">
+              <div class="card-header-flex">
+                <h2 class="card-title">Detalle de Actividades Clave</h2>
+                <span class="card-subtitle">Tasa de resolución</span>
+              </div>
+              <div class="gauge-block">
+                <span class="gauge-title">Álgebra básica (Ecuaciones lineales)</span>
+                <canvas id="gauge1" width="160" height="95"></canvas>
+              </div>
+              <div class="gauge-block">
+                <span class="gauge-title">Comprensión Lectora y Sintaxis</span>
+                <canvas id="gauge2" width="160" height="95"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =========================================================
+             VISTA 2: GESTIÓN DE ESTUDIANTES
+             ========================================================= -->
+        <div class="view-section" id="view-estudiantes">
+          <div class="card">
+            <div class="card-header-flex">
+              <div>
+                <h2 class="card-title">Directorio Académico de Estudiantes</h2>
+                <span class="card-subtitle">Consulta detallada, seguimiento individual y detección de alertas tempranas</span>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn-secondary" id="filterOnlyRiskBtn"><i data-lucide="alert-triangle"></i>Ver Estudiantes en Riesgo</button>
+                <button class="btn-primary" id="exportStudentsBtn"><i data-lucide="download"></i>Exportar Lista</button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="students-table" id="fullStudentsTable">
+                <thead>
+                  <tr>
+                    <th>Estudiante</th>
+                    <th>Curso</th>
+                    <th>Promedio</th>
+                    <th>Asistencia</th>
+                    <th>Actividades</th>
+                    <th>Aciertos</th>
+                    <th>Fallos</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="fullStudentsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================
+             VISTA 3: CURSOS Y GRUPOS
+             ========================================================= -->
+        <div class="view-section" id="view-cursos">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title" style="font-size:16px;">Comparativa y Rendimiento por Cursos</h2>
+              <span class="card-subtitle">Análisis de promedios, docentes a cargo y porcentaje de aprobación</span>
+            </div>
+          </div>
+
+          <div class="courses-grid" id="coursesGridContainer">
+            <!-- Se llena dinámicamente con Javascript -->
+          </div>
+        </div>
+
+        <!-- =========================================================
+             VISTA 4: RENDIMIENTO ACADÉMICO DETALLADO
+             ========================================================= -->
+        <div class="view-section" id="view-rendimiento">
+          <div class="row-main">
+            <div class="card">
+              <div class="card-header-flex">
+                <h2 class="card-title">Distribución de Notas por Materia</h2>
+                <span class="card-subtitle">Comparativa entre Lenguaje, Matemáticas, Ciencias e Inglés</span>
+              </div>
+              <div class="chart-container" style="height:260px;">
+                <canvas id="subjectComparisonChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+              <h2 class="card-title">Materia con Mayor Atención</h2>
+              <div style="background:#fef2f2;border:1px solid #fee2e2;border-radius:8px;padding:14px;">
+                <div style="font-weight:700;color:var(--red-dark);font-size:13px;display:flex;align-items:center;gap:6px;">
+                  <i data-lucide="alert-circle" style="width:16px;height:16px;"></i> Inglés Técnico (76%)
+                </div>
+                <p style="font-size:11.5px;color:var(--text-mid);margin:6px 0 0 0;line-height:1.4;">
+                  El 34% de los estudiantes de 10°A presentan dificultades en vocabulario y tiempos gramaticales. Se recomienda reforzar con talleres complementarios.
+                </p>
+              </div>
+
+              <h2 class="card-title" style="margin-top:4px;">Materia con Mejor Desempeño</h2>
+              <div style="background:#f0fdf4;border:1px solid #dcfce7;border-radius:8px;padding:14px;">
+                <div style="font-weight:700;color:var(--green-dark);font-size:13px;display:flex;align-items:center;gap:6px;">
+                  <i data-lucide="check-circle" style="width:16px;height:16px;"></i> Matemáticas (92%)
+                </div>
+                <p style="font-size:11.5px;color:var(--text-mid);margin:6px 0 0 0;line-height:1.4;">
+                  Alto índice de aciertos en álgebra y geometría analítica con más del 90% de aprobación.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================
+             VISTA 5: ACTIVIDADES Y EVALUACIONES
+             ========================================================= -->
+        <div class="view-section" id="view-actividades">
+          <div class="card">
+            <div class="card-header-flex">
+              <div>
+                <h2 class="card-title">Registro de Actividades y Talleres</h2>
+                <span class="card-subtitle">Seguimiento de cumplimiento, entregas a tiempo y calificaciones obtenidas</span>
+              </div>
+              <button class="btn-primary" id="newActivityBtn"><i data-lucide="plus"></i>Nueva Actividad</button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="students-table">
+                <thead>
+                  <tr>
+                    <th>Actividad</th>
+                    <th>Asignatura</th>
+                    <th>Curso</th>
+                    <th>Fecha de Cierre</th>
+                    <th>Entregas</th>
+                    <th>Tasa de Aciertos</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Álgebra básica: Ecuaciones</strong></td>
+                    <td>Matemáticas</td>
+                    <td>10° A</td>
+                    <td>15/06/2026</td>
+                    <td>42 / 48 (87.5%)</td>
+                    <td>89%</td>
+                    <td><span class="badge excelente">Completada</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Lectura Crítica: Ensayo argumentativo</strong></td>
+                    <td>Lenguaje</td>
+                    <td>10° A</td>
+                    <td>20/06/2026</td>
+                    <td>40 / 48 (83.3%)</td>
+                    <td>92%</td>
+                    <td><span class="badge excelente">Completada</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Biología Celular y Genética</strong></td>
+                    <td>Ciencias</td>
+                    <td>10° A</td>
+                    <td>28/06/2026</td>
+                    <td>38 / 48 (79.1%)</td>
+                    <td>84%</td>
+                    <td><span class="badge bueno">En Revisión</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Grammar & Reading Comprehension</strong></td>
+                    <td>Inglés</td>
+                    <td>10° A</td>
+                    <td>05/07/2026</td>
+                    <td>31 / 48 (64.5%)</td>
+                    <td>76%</td>
+                    <td><span class="badge riesgo">Atención Requerida</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================
+             VISTA 6: GENERADOR DE REPORTES ACADÉMICOS
+             ========================================================= -->
+        <div class="view-section" id="view-reportes">
+          <div class="card">
+            <div class="card-header-flex">
+              <div>
+                <h2 class="card-title">Informe Ejecutivo de Rendimiento</h2>
+                <span class="card-subtitle">Generación de reportes listos para imprimir o guardar en formato PDF</span>
+              </div>
+              <div class="report-controls">
+                <button class="btn-primary" id="printReportBtn"><i data-lucide="printer"></i>Imprimir / Guardar PDF</button>
+              </div>
+            </div>
+
+            <div class="report-preview" id="reportPrintArea">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--border);padding-bottom:14px;">
+                <div>
+                  <h3 style="margin:0;font-size:18px;font-weight:800;color:var(--purple);">INSTITUCIÓN EDUCATIVA - EDUPANEL</h3>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Reporte Oficial de Rendimiento y Evaluación Académica</div>
+                </div>
+                <div style="text-align:right;font-size:11.5px;color:var(--text-mid);">
+                  <div><b>Período:</b> 2026-1</div>
+                  <div><b>Fecha de Emisión:</b> 25/08/2026</div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                <div class="stat-box" style="background:#f8f9fb;padding:10px;border-radius:6px;">
+                  <span class="slabel">Promedio General</span>
+                  <span class="sval" style="color:var(--blue-dark);font-size:18px;">84.3%</span>
+                </div>
+                <div class="stat-box" style="background:#f8f9fb;padding:10px;border-radius:6px;">
+                  <span class="slabel">Total Estudiantes</span>
+                  <span class="sval" style="font-size:18px;">125</span>
+                </div>
+                <div class="stat-box" style="background:#f8f9fb;padding:10px;border-radius:6px;">
+                  <span class="slabel">Tasa de Aprobación</span>
+                  <span class="sval" style="color:var(--green-dark);font-size:18px;">91.2%</span>
+                </div>
+                <div class="stat-box" style="background:#f8f9fb;padding:10px;border-radius:6px;">
+                  <span class="slabel">En Riesgo</span>
+                  <span class="sval" style="color:var(--red);font-size:18px;">8 Alumnos</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 style="margin:0 0 8px 0;font-size:13px;font-weight:700;">Resumen por Cursos</h4>
+                <table class="students-table" style="min-width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Curso</th>
+                      <th>Estudiantes</th>
+                      <th>Promedio</th>
+                      <th>Aprobación</th>
+                      <th>Materia Destacada</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>10° A</td>
+                      <td>48</td>
+                      <td>85.4%</td>
+                      <td>93.7%</td>
+                      <td>Lenguaje (92%)</td>
+                    </tr>
+                    <tr>
+                      <td>10° B</td>
+                      <td>45</td>
+                      <td>83.1%</td>
+                      <td>88.8%</td>
+                      <td>Matemáticas (89%)</td>
+                    </tr>
+                    <tr>
+                      <td>11° A</td>
+                      <td>32</td>
+                      <td>86.0%</td>
+                      <td>94.0%</td>
+                      <td>Ciencias (90%)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================
+             VISTA 7: CONFIGURACIÓN
+             ========================================================= -->
+        <div class="view-section" id="view-configuracion">
+          <div class="card" style="max-width:720px;">
+            <h2 class="card-title" style="margin-bottom:16px;">Configuración del Sistema y Parámetros Académicos</h2>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+                <div>
+                  <div style="font-weight:600;">Umbral de Alerta Temprana (Estudiantes en Riesgo)</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Notificar automáticamente cuando el promedio sea inferior a este valor.</div>
+                </div>
+                <input type="number" value="70" min="50" max="90" style="width:70px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-weight:700;">
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+                <div>
+                  <div style="font-weight:600;">Notificaciones de Asistencia</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Generar reporte de fallas mayores al 15%.</div>
+                </div>
+                <input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--blue);">
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+                <div>
+                  <div style="font-weight:600;">Período Académico Activo</div>
+                  <div style="font-size:11px;color:var(--text-muted);">Controla los datos visibles por defecto en el dashboard.</div>
+                </div>
+                <select class="filter-select" style="width:120px;">
+                  <option value="2026-1" selected>2026-1</option>
+                  <option value="2025-2">2025-2</option>
+                </select>
+              </div>
+
+              <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+                <button class="btn-primary" id="saveConfigBtn"><i data-lucide="check"></i>Guardar Cambios</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- =========================================================
+         RIGHT PROFILE PANEL (PERFIL ESTUDIANTE 360)
+         ========================================================= -->
+    <aside class="profile-panel" id="profilePanel">
+      <div class="panel-header">
+        <span class="panel-title">Perfil Académico del Estudiante</span>
+        <div class="panel-icons">
+          <button class="panel-icon-btn" id="panelFilterClassmatesBtn" title="Filtrar compañeros del curso"><i data-lucide="users"></i></button>
+          <button class="panel-icon-btn" id="panelInfoDossierBtn" title="Ficha técnica del estudiante"><i data-lucide="info"></i></button>
+          <button class="panel-icon-btn" id="panelPrintStudentBtn" title="Imprimir ficha de estudiante"><i data-lucide="printer"></i></button>
+          <button class="panel-icon-btn" id="closePanelBtn" title="Cerrar panel"><i data-lucide="x"></i></button>
+        </div>
+      </div>
+
+      <div class="student-profile-head">
+        <div class="avatar-lg" id="profileAvatar">MG</div>
+        <div>
+          <div class="spname" id="profileName">María González</div>
+          <div class="spmeta" id="profileMeta">10° A • Período 2026-1</div>
+        </div>
+      </div>
+
+      <div class="stat-grid-4">
+        <div class="stat-box">
+          <span class="slabel">Promedio</span>
+          <span class="sval" id="statPromedio">87%</span>
+        </div>
+        <div class="stat-box">
+          <span class="slabel">Actividades</span>
+          <span class="sval" id="statActividades">42/48</span>
+        </div>
+        <div class="stat-box">
+          <span class="slabel">Aciertos</span>
+          <span class="sval" id="statAciertos">89%</span>
+        </div>
+        <div class="stat-box">
+          <span class="slabel">Fallos</span>
+          <span class="sval" id="statFallos">11%</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-subtitle">Evolución del Rendimiento</div>
+        <div class="evolution-chart-container">
+          <canvas id="evolutionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="subject-grid-2x2">
+        <div class="subject-block green">
+          <span class="sbname">Lenguaje</span>
+          <span class="sbval" id="subjLenguaje">92%</span>
+        </div>
+        <div class="subject-block blue">
+          <span class="sbname">Matemáticas</span>
+          <span class="sbval" id="subjMatematicas">91%</span>
+        </div>
+        <div class="subject-block orange">
+          <span class="sbname">Ciencias</span>
+          <span class="sbval" id="subjCiencias">84%</span>
+        </div>
+        <div class="subject-block red">
+          <span class="sbname">Inglés</span>
+          <span class="sbval" id="subjIngles">76%</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-subtitle">Actividades Realizadas</div>
+        <table class="mini-activity-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Curso</th>
+              <th>Resultado</th>
+              <th>Aciertos</th>
+              <th>Fallos</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody id="miniActivityTbody">
+            <tr>
+              <td>Álgebra básica</td>
+              <td>10° A</td>
+              <td><span class="mini-badge excelente">Excelente</span></td>
+              <td>35</td>
+              <td>4</td>
+              <td>89%</td>
+            </tr>
+            <tr>
+              <td>Comprensión T.</td>
+              <td>10° A</td>
+              <td><span class="mini-badge bueno">Bueno</span></td>
+              <td>29</td>
+              <td>7</td>
+              <td>76%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-card-title"><i data-lucide="sparkles"></i>Análisis Generado por IA</div>
+        <p class="ai-card-text" id="aiAnalysisText">
+          La estudiante presenta un buen rendimiento general (87%). Sus principales fortalezas se encuentran en Matemáticas y Lenguaje. Se recomienda reforzar ejercicios prácticos de comprensión lectora en inglés.
+        </p>
+        <div class="ai-tags" id="aiTagsContainer">
+          <span class="ai-tag">Fortaleza: Matemáticas</span>
+          <span class="ai-tag">Refuerzo: Inglés</span>
+          <span class="ai-tag">Prioridad: Media</span>
+        </div>
+        <button class="ai-btn" id="viewAiRecommendationsBtn">Ver recomendaciones detalladas</button>
+      </div>
+    </aside>
+
+    <!-- BACKDROP PARA PANEL Y SIDEBAR EN MÓVIL -->
+    <div class="panel-backdrop" id="panelBackdrop"></div>
+
+  </div>
+
+  <!-- =========================================================
+       MODALES
+       ========================================================= -->
+  <!-- Modal de Recomendaciones IA -->
+  <div class="modal-backdrop" id="aiRecommendationsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+          <i data-lucide="sparkles" style="color:var(--purple);"></i>
+          <span>Plan de Acción Pedagógico - Inteligencia Artificial</span>
+        </div>
+        <button class="panel-icon-btn" id="closeAiModalBtn"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="aiModalBody">
+        <!-- Dinámico -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="closeAiModalFooterBtn">Cerrar</button>
+        <button class="btn-primary" id="applyPedagogyPlanBtn"><i data-lucide="check"></i>Asignar Plan de Refuerzo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Ficha Técnica del Estudiante -->
+  <div class="modal-backdrop" id="studentDossierModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+          <i data-lucide="user-check" style="color:var(--blue);"></i>
+          <span>Ficha Técnica y Expediente del Estudiante</span>
+        </div>
+        <button class="panel-icon-btn" id="closeDossierModalBtn"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="dossierModalBody">
+        <!-- Dinámico -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="closeDossierFooterBtn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Principal -->
+  <script src="js/main.js"></script>
+</body>
+</html>

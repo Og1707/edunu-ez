@@ -3,16 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import FormField from '../components/ui/FormField';
 import { login } from '../services/auth.service';
-import HeroIllustration from './HeroIllustration';
+import heroIllustration from './hero-illustration.svg';
 import './Login.css';
 
 /**
  * Login
  * Pagina de inicio de sesion de EduNúñez. Contiene un formulario de login con validación de email y contraseña.
  *
- * Layout: CSS Grid de 2 columnas.
- *   - Columna izquierda â†’ HeroIllustration (SVG ilustrativo)
- *   - Columna derecha   â†’ Tarjeta glassmorphic con formulario
+ * Layout: CSS Grid de 2 columnas con ilustración SVG externa y formulario.
  *
  * LÃ³gica de autenticaciÃ³n preservada Ã­ntegramente:
  *   - useState: formData, errors, isLoading
@@ -101,7 +99,7 @@ const Login = () => {
 
       {/* â”€â”€ Columna izquierda: ilustraciÃ³n â”€â”€ */}
       <div className="login-illustration" aria-hidden="true">
-        <HeroIllustration />
+        <img src={heroIllustration} alt="" />
       </div>
 
       {/* â”€â”€ Columna derecha: formulario glassmorphic â”€â”€ */}

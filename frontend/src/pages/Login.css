@@ -69,7 +69,7 @@
 .login-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
   background: radial-gradient(
       circle at 85% 45%,
       rgba(99, 102, 241, 0.10),
@@ -90,7 +90,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  min-width: 0;
+  padding: clamp(1.5rem, 4vw, 4rem);
   /* Degradado sutil indigo sobre el fondo claro */
   background: linear-gradient(
     135deg,
@@ -100,10 +101,13 @@
   overflow: hidden;
 }
 
-.login-illustration svg {
-  width: 100%;
-  max-width: 580px;
+.login-illustration img {
+  display: block;
+  width: min(100%, 680px);
+  max-height: min(82vh, 760px);
   height: auto;
+  object-fit: contain;
+  object-position: center;
   /* Animación de entrada */
   animation: fadeSlideLeft 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -383,12 +387,13 @@
   }
 
   .login-illustration {
-    padding: 1.5rem 2rem 0;
-    max-height: 280px;
+    padding: 1rem 2rem 0;
+    max-height: 300px;
   }
 
-  .login-illustration svg {
-    max-width: 340px;
+  .login-illustration img {
+    width: min(100%, 360px);
+    max-height: 260px;
   }
 
   .login-panel {

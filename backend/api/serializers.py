@@ -1,7 +1,7 @@
 import rest_framework.serializers as serializers
 from django.contrib.auth.hashers import make_password
 from .models import (
-    Usuario, Reporte, Actividad, Curso, EstudianteCurso, AsignacionActividad,
+    Usuario, Reporte, Actividad, Curso, Asignatura, EstudianteCurso, AsignacionActividad,
     ActividadMultimedia, ActividadTexto, Pregunta, OpcionRespuesta,
     PartidaJuego, JuegoEducativo
 )
@@ -58,10 +58,22 @@ class ActividadSerializer(serializers.ModelSerializer):
 
 class CursoSerializer(serializers.ModelSerializer):
     profesor_nombre = serializers.CharField(source='profesor.nombre_completo', read_only=True)
+    asignaturas = serializers.PrimaryKeyRelatedField(many=True, queryset=Asignatura.objects.all(), required=False)
+    asignaturas_nombres = serializers.SerializerMethodField()
+
+    def get_asignaturas_nombres(self, curso):
+        return list(curso.asignaturas.order_by('nombre').values_list('nombre', flat=True))
     
     class Meta:
         model = Curso
-        fields = ['id', 'nombre', 'descripcion', 'profesor', 'profesor_nombre']
+        fields = ['id', 'nombre', 'descripcion', 'profesor', 'profesor_nombre', 'asignaturas', 'asignaturas_nombres']
+
+
+class AsignaturaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asignatura
+        fields = ['id', 'nombre']
+        read_only_fields = ['id']
 
 class EstudianteCursoSerializer(serializers.ModelSerializer):
     """Serializer for EstudianteCurso with nested complete estudiante object."""

@@ -6,8 +6,8 @@ from rest_framework.response import Response
 
 from auth.authentication import JWTAuthentication
 from api.permissions import IsAdministrador, IsProfesor
-from api.models import Curso, MateriaCienciasNaturales
-from api.serializers import CursoSerializer
+from api.models import Asignatura, Curso, MateriaCienciasNaturales
+from api.serializers import AsignaturaSerializer, CursoSerializer
 from api.services.cursos_service import CursosService
 from api.services.cache_service import CacheService
 
@@ -35,6 +35,27 @@ def crear_curso(request):
     curso = CursosService.crear_curso(creador=request.user, datos=request.data)
     serializer = CursoSerializer(curso)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([JWTAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated, IsProfesor | IsAdministrador])
+def gestionar_asignaturas(request):
+    """Lista el catálogo para el personal y permite ampliarlo a administradores."""
+    if request.method == 'GET':
+        serializer = AsignaturaSerializer(Asignatura.objects.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    if request.user.rol != 'administrador':
+        return Response(
+            {'mensaje': 'Solo los administradores pueden crear asignaturas.'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    serializer = AsignaturaSerializer(data=request.data)
+    if serializer.is_valid():
+        asignatura = serializer.save()
+        return Response(AsignaturaSerializer(asignatura).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['PUT', 'DELETE'])

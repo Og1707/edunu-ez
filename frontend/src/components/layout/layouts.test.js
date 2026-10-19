@@ -64,13 +64,12 @@ describe('role layouts', () => {
   });
 
   it('muestra navegación de estudiante sin opciones administrativas', () => {
-    setUser({ rol: 'estudiante', username: 'estudiante', puntos_xp: 120, nivel: 2 });
+    setUser({ rol: 'estudiante', username: 'estudiante' });
     render(<MemoryRouter><StudentLayout /></MemoryRouter>);
 
     expect(screen.getAllByRole('link', { name: 'Mis tareas' })).toHaveLength(2);
     expect(screen.queryByRole('link', { name: 'Cursos' })).not.toBeInTheDocument();
-    expect(screen.getByText('120 XP')).toBeInTheDocument();
-    expect(screen.getByText('Nivel 2')).toBeInTheDocument();
+    expect(screen.queryByText(/XP|Nivel/)).not.toBeInTheDocument();
   });
 });
 
