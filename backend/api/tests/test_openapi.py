@@ -46,3 +46,19 @@ class OpenAPISchemaTests(APITestCase):
         response = self.client.get("/api/schema/", HTTP_ACCEPT="application/json")
         content = response.content.decode("utf-8")
         self.assertIn("login", content.lower())
+
+    def test_root_endpoint_retorna_200(self):
+        """GET / debe retornar 200 con la información del API root."""
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIn("EduNúñez", data.get("plataforma", ""))
+        self.assertIn("/api/docs/", data.get("documentacion", {}).get("swagger", ""))
+
+    def test_api_index_endpoint_retorna_200(self):
+        """GET /api/ debe retornar 200 con la información básica."""
+        response = self.client.get("/api/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data.get("status"), "ok")
+

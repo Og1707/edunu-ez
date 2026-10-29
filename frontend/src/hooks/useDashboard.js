@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getDashboardStudent, getDashboardSummary } from '../services/dashboard.service';
 
 export default function useDashboard() {
@@ -7,6 +7,7 @@ export default function useDashboard() {
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState('');
+  const latestStudentIdRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -21,16 +22,32 @@ export default function useDashboard() {
   }, []);
 
   const selectStudent = useCallback(async (studentId) => {
-    setDetailLoading(true);
-    try {
-      const { data: detail } = await getDashboardStudent(studentId);
-      setStudent(detail);
-    } catch (failure) {
-      const message = failure.response?.data?.mensaje || failure.response?.data?.detail;
-      setError(message || 'No fue posible cargar el perfil del estudiante.');
+    if (!studentId) {
+      latestStudentIdRef.current = null;
       setStudent(null);
-    } finally {
       setDetailLoading(false);
+      return;
+    }
+    const currentId = Number(studentId);
+    latestStudentIdRef.current = currentId;
+    setDetailLoading(true);
+    setStudent(null);
+    setError('');
+    try {
+      const { data: detail } = await getDashboardStudent(currentId);
+      if (latestStudentIdRef.current === currentId) {
+        setStudent(detail);
+      }
+    } catch (failure) {
+      if (latestStudentIdRef.current === currentId) {
+        const message = failure.response?.data?.mensaje || failure.response?.data?.detail;
+        setError(message || 'No fue posible cargar el perfil del estudiante.');
+        setStudent(null);
+      }
+    } finally {
+      if (latestStudentIdRef.current === currentId) {
+        setDetailLoading(false);
+      }
     }
   }, []);
 

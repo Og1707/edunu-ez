@@ -16,6 +16,7 @@
   border: 1px solid #dbeafe;
   border-radius: var(--radius-xl);
   background: linear-gradient(110deg, #eef2ff 0%, #f0f9ff 68%, #ecfdf5 100%);
+  animation: fadeIn var(--duration-normal, 220ms) ease-out;
 }
 
 .student-dashboard__welcome::after {
@@ -65,9 +66,13 @@
   background: rgb(255 255 255 / 75%);
   box-shadow: 0 12px 28px rgb(79 70 229 / 10%);
   transform: rotate(3deg);
+  transition: transform var(--duration-normal, 240ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.student-dashboard__welcome:hover .student-dashboard__welcome-mark {
+  transform: rotate(6deg) scale(1.05);
 }
 
-.student-dashboard__error { margin: 1rem 0 0; padding: .85rem 1rem; border: 1px solid #fecaca; border-radius: var(--radius-md); color: #991b1b; background: #fef2f2; }
+.student-dashboard__error { margin: 1rem 0 0; padding: .85rem 1rem; border: 1px solid #fecaca; border-radius: var(--radius-md); color: #991b1b; background: #fef2f2; animation: fadeIn 200ms ease; }
 
 .student-dashboard__metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 1.25rem 0 2rem; }
 
@@ -79,11 +84,18 @@
   border-color: var(--student-border, #e2e8f0);
   border-radius: var(--radius-xl);
   box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition: transform var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1)),
+              box-shadow var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1));
+  animation: cardFadeSlideUp var(--duration-normal, 240ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1)) backwards;
 }
 
+.student-dashboard__metric:nth-child(1) { animation-delay: 30ms; }
+.student-dashboard__metric:nth-child(2) { animation-delay: 80ms; }
+.student-dashboard__metric:nth-child(3) { animation-delay: 130ms; }
+
 .student-dashboard__metric.ui-stat-card:hover { box-shadow: 0 8px 20px rgb(15 23 42 / 7%); transform: translateY(-2px); }
-.student-dashboard__metric .ui-stat-card__icon { display: grid; width: 2.75rem; height: 2.75rem; flex: 0 0 auto; place-items: center; border-radius: .9rem; }
+.student-dashboard__metric .ui-stat-card__icon { display: grid; width: 2.75rem; height: 2.75rem; flex: 0 0 auto; place-items: center; border-radius: .9rem; transition: transform var(--duration-fast, 160ms) ease; }
+.student-dashboard__metric:hover .ui-stat-card__icon { transform: scale(1.08); }
 .student-dashboard__metric--completed .ui-stat-card__icon { color: #047857; background: #d1fae5; box-shadow: inset 0 -3px var(--student-mint, #10b981); }
 .student-dashboard__metric--pending .ui-stat-card__icon { color: #b45309; background: #fef3c7; box-shadow: inset 0 -3px var(--student-amber, #f59e0b); }
 .student-dashboard__metric--average .ui-stat-card__icon { color: #0369a1; background: #e0f2fe; box-shadow: inset 0 -3px var(--student-sky, #38bdf8); }
@@ -115,7 +127,16 @@
 .student-dashboard__section-heading { margin-bottom: .9rem; }
 .student-dashboard__section-heading h2 { margin: .25rem 0 0; color: #0f172a; font-size: clamp(1.2rem, 2vw, 1.45rem); letter-spacing: -.02em; }
 .student-dashboard__section-heading p { margin: .4rem 0 0; color: #64748b; font-size: .88rem; }
-.student-dashboard__chart-panel { min-width: 0; margin: 0 0 1.5rem; padding: 1.2rem; border: 1px solid #e2e8f0; border-radius: var(--radius-xl); background: #fff; box-shadow: 0 2px 8px rgb(15 23 42 / 4%); }
+.student-dashboard__chart-panel {
+  min-width: 0;
+  margin: 0 0 1.5rem;
+  padding: 1.2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-xl);
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+  animation: fadeIn var(--duration-normal, 240ms) ease-out;
+}
 .student-dashboard__chart-panel .dashboard-recharts { min-width: 0; }
 .student-dashboard__link-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 
@@ -132,12 +153,22 @@
   background: #fff;
   box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
   text-decoration: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: border-color var(--duration-fast, 160ms) ease,
+              box-shadow var(--duration-fast, 160ms) ease,
+              transform var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
-.student-dashboard__link:hover { border-color: #c7d2fe; box-shadow: 0 8px 20px rgb(15 23 42 / 7%); transform: translateY(-2px); }
+.student-dashboard__link:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 8px 20px rgb(15 23 42 / 7%);
+  transform: translateY(-2px);
+}
+.student-dashboard__link:active {
+  transform: translateY(-1px) scale(0.99);
+}
 .student-dashboard__link:focus-visible { outline: 3px solid var(--student-indigo, #4f46e5); outline-offset: 3px; }
-.student-dashboard__link-icon { display: grid; width: 3rem; height: 3rem; flex: 0 0 auto; place-items: center; border-radius: 1rem; }
+.student-dashboard__link-icon { display: grid; width: 3rem; height: 3rem; flex: 0 0 auto; place-items: center; border-radius: 1rem; transition: transform var(--duration-fast, 160ms) ease; }
+.student-dashboard__link:hover .student-dashboard__link-icon { transform: scale(1.08); }
 .student-dashboard__link--indigo .student-dashboard__link-icon { color: #4338ca; background: #eef2ff; }
 .student-dashboard__link--sky .student-dashboard__link-icon { color: #0369a1; background: #e0f2fe; }
 .student-dashboard__link--mint .student-dashboard__link-icon { color: #047857; background: #d1fae5; }
@@ -171,8 +202,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .student-dashboard__welcome,
   .student-dashboard__metric.ui-stat-card,
+  .student-dashboard__chart-panel,
   .student-dashboard__link,
-  .student-dashboard__link-arrow { transition: none; }
-  .student-dashboard__skeleton { animation: none; }
+  .student-dashboard__link-arrow,
+  .student-dashboard__welcome-mark,
+  .student-dashboard__link-icon {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .student-dashboard__skeleton { animation: none !important; }
 }

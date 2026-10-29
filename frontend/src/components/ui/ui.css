@@ -8,7 +8,19 @@
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition: color var(--duration-fast, 160ms) ease,
+              background-color var(--duration-fast, 160ms) ease,
+              border-color var(--duration-fast, 160ms) ease,
+              box-shadow var(--duration-fast, 160ms) ease,
+              transform var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.ui-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.ui-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .ui-button:focus-visible,
@@ -47,19 +59,45 @@
 
 .ui-form-field { display: flex; flex-direction: column; gap: 0.5rem; }
 .ui-form-field__label { color: var(--color-neutral-700); font-size: var(--font-size-sm); font-weight: 600; }
-.ui-form-field__input { width: 100%; min-height: 2.75rem; padding: 0.65rem 0.8rem; border: 1px solid var(--color-neutral-300); border-radius: var(--radius-md); color: var(--color-neutral-900); font: inherit; }
+.ui-form-field__input { width: 100%; min-height: 2.75rem; padding: 0.65rem 0.8rem; border: 1px solid var(--color-neutral-300); border-radius: var(--radius-md); color: var(--color-neutral-900); font: inherit; transition: border-color var(--duration-fast, 160ms) ease, box-shadow var(--duration-fast, 160ms) ease; }
 .ui-form-field__input:focus { border-color: var(--color-primary-500); }
 .ui-form-field__input--error { border-color: var(--color-error-base); background: var(--color-error-muted); }
 .ui-form-field__input:disabled { cursor: not-allowed; background: var(--color-neutral-100); }
 .ui-form-field__message { color: var(--color-neutral-600); font-size: var(--font-size-sm); }
 .ui-form-field__message--error { color: #b91c1c; }
 
-.ui-stat-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); background: white; box-shadow: var(--shadow-sm); }
-.ui-stat-card__icon { color: var(--color-primary-600); font-size: 1.5rem; }
+.ui-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1)),
+              box-shadow var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.ui-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.ui-stat-card__icon { color: var(--color-primary-600); font-size: 1.5rem; transition: transform var(--duration-fast, 160ms) ease; }
+.ui-stat-card:hover .ui-stat-card__icon { transform: scale(1.08); }
 .ui-stat-card__label, .ui-stat-card__description { margin: 0; color: var(--color-neutral-600); font-size: var(--font-size-sm); }
 .ui-stat-card__value { margin: 0.25rem 0; color: var(--color-neutral-900); font-size: var(--font-size-h2); font-weight: 700; }
 
-.ui-empty-state { grid-column: 1 / -1; padding: 2.5rem 1.5rem; border: 1px dashed var(--color-neutral-300); border-radius: var(--radius-lg); background: var(--color-neutral-0); text-align: center; }
+.ui-empty-state {
+  grid-column: 1 / -1;
+  padding: 2.5rem 1.5rem;
+  border: 1px dashed var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-0);
+  text-align: center;
+  animation: scaleFadeIn var(--duration-normal, 220ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1));
+}
 .ui-empty-state__icon { display: block; margin-bottom: 0.75rem; color: var(--color-primary-500); font-size: 2rem; }
 .ui-empty-state__title { margin: 0; color: var(--color-neutral-900); font-size: var(--font-size-h3); }
 .ui-empty-state__description { margin: 0.5rem 0 0; color: var(--color-neutral-600); }
@@ -70,5 +108,11 @@
 @keyframes ui-spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-button { transition: none; animation-duration: 0.01ms; animation-iteration-count: 1; }
+  .ui-button,
+  .ui-stat-card,
+  .ui-empty-state {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
 }

@@ -30,10 +30,11 @@ def gestionar_actividades(request):
     """Listar y crear actividades."""
     if request.method == 'GET':
         usuario = request.user
+        http_req = getattr(request, '_request', request)
         if usuario.rol == 'estudiante':
-            return obtener_actividades_estudiante(request)
+            return obtener_actividades_estudiante(http_req)
         if usuario.rol == 'profesor':
-            return obtener_actividades_profesor(request)
+            return obtener_actividades_profesor(http_req)
         if usuario.rol == 'administrador':
             actividades = Actividad.objects.select_related('curso', 'creado_por').all().order_by('-fecha_creacion')
             serializer = ActividadSerializer(actividades, many=True)

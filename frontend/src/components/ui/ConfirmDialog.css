@@ -1,7 +1,69 @@
-.confirm-dialog { width:min(92vw, 440px); padding:1.5rem; border:0; border-radius:var(--radius-lg); color:var(--color-neutral-900); box-shadow:0 24px 70px rgb(15 23 42 / .28); }
-.confirm-dialog::backdrop { background:rgb(15 23 42 / .5); backdrop-filter:blur(2px); }
-.confirm-dialog h2 { margin:0; font-size:1.2rem; }.confirm-dialog p { margin:.6rem 0 1.5rem; color:var(--color-neutral-600); }
-.confirm-dialog__actions { display:flex; justify-content:flex-end; gap:.6rem; }
-.confirm-dialog__actions button { min-height:2.6rem; padding:.6rem 1rem; border:1px solid var(--color-neutral-300); border-radius:var(--radius-md); background:white; font:inherit; cursor:pointer; }
-.confirm-dialog__actions button.is-danger { border-color:var(--color-error-base); color:white; background:var(--color-error-base); }
-.confirm-dialog button:focus-visible { outline:3px solid var(--color-primary-500); outline-offset:2px; }
+.confirm-dialog {
+  width: min(92vw, 440px);
+  padding: 1.5rem;
+  border: 0;
+  border-radius: var(--radius-lg);
+  color: var(--color-neutral-900);
+  box-shadow: 0 24px 70px rgb(15 23 42 / .28);
+}
+
+.confirm-dialog[open] {
+  animation: modalPopIn var(--duration-normal, 220ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
+}
+
+.confirm-dialog::backdrop {
+  background: rgb(15 23 42 / .5);
+  backdrop-filter: blur(2px);
+  animation: modalBackdropFadeIn var(--duration-normal, 220ms) ease-out forwards;
+}
+
+.confirm-dialog h2 { margin: 0; font-size: 1.2rem; }
+.confirm-dialog p { margin: .6rem 0 1.5rem; color: var(--color-neutral-600); }
+.confirm-dialog__actions { display: flex; justify-content: flex-end; gap: .6rem; }
+.confirm-dialog__actions button {
+  min-height: 2.6rem;
+  padding: .6rem 1rem;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  background: white;
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--duration-fast, 160ms) var(--ease-out-natural, cubic-bezier(0.16, 1, 0.3, 1)),
+              background-color var(--duration-fast, 160ms) ease,
+              border-color var(--duration-fast, 160ms) ease,
+              color var(--duration-fast, 160ms) ease;
+}
+
+.confirm-dialog__actions button:hover {
+  transform: translateY(-1px);
+}
+
+.confirm-dialog__actions button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.confirm-dialog__actions button.is-danger {
+  border-color: var(--color-error-base);
+  color: white;
+  background: var(--color-error-base);
+}
+
+.confirm-dialog__actions button.is-danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.confirm-dialog button:focus-visible {
+  outline: 3px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-dialog[open],
+  .confirm-dialog::backdrop,
+  .confirm-dialog__actions button {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

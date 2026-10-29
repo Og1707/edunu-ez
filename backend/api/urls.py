@@ -68,7 +68,18 @@ from .views.templates_rest import (
 )
 
 
+def api_index(request):
+    from django.http import JsonResponse
+    return JsonResponse({
+        "status": "ok",
+        "message": "EduNúñez API v2",
+        "documentation": "/api/docs/",
+        "health": "/api/health/",
+    })
+
+
 urlpatterns = [
+    path('', api_index, name='api_index'),
     path('dashboard/resumen/', dashboard_summary, name='dashboard_resumen'),
     path('dashboard/estudiantes/<int:student_id>/', dashboard_student_detail, name='dashboard_estudiante_detalle'),
     path('health/', health_check, name='health_check'),

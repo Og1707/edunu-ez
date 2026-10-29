@@ -52,3 +52,16 @@ try:
     INSTALLED_APPS += ["django_extensions"]  # noqa: F405
 except ImportError:
     pass
+
+# ---------------------------------------------------------------------------
+# Caché en desarrollo — Usar LocMemCache si no hay URL de Redis configurada
+# para evitar errores de conexión (ConnectionError 500) en throttling y vistas.
+# ---------------------------------------------------------------------------
+if not os.environ.get("DJANGO_REDIS_URL"):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "edununez-dev-cache",
+        }
+    }
+

@@ -39,6 +39,25 @@ describe('DashboardStaff', () => {
     expect(screen.getAllByText('Ana Pérez').length).toBeGreaterThan(0);
   });
 
+  it('aplica is-closing al panel inmediatamente al cerrarlo y lo desmonta tras la animación', async () => {
+    jest.useFakeTimers();
+    render(<DashboardStaff/>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Ver perfil' }));
+    const profile = await screen.findByRole('complementary', { name: 'Perfil del estudiante' });
+    expect(profile).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar perfil' }));
+    // Class should be applied synchronously
+    expect(profile).toHaveClass('is-closing');
+
+    // Advance timers to let the animation timer fire and unmount the panel
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(screen.queryByRole('complementary', { name: 'Perfil del estudiante' })).not.toBeInTheDocument();
+    });
+    jest.useRealTimers();
+  });
+
   it('permite imprimir el reporte', async () => {
     const print = jest.spyOn(window, 'print').mockImplementation(() => {});
     render(<DashboardStaff/>);

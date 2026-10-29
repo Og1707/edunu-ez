@@ -43,8 +43,13 @@ class DashboardService:
             AsignacionActividad.objects.filter(
                 actividad__curso__in=courses,
                 estudiante__in=students,
-            ).select_related('actividad', 'actividad__curso', 'actividad__curso__ciencias_naturales__materia', 'estudiante')
-            .order_by('fecha_asignacion', 'id')
+            ).select_related(
+                'actividad',
+                'actividad__curso',
+                'actividad__asignatura',
+                'actividad__curso__ciencias_naturales__materia',
+                'estudiante',
+            ).order_by('fecha_asignacion', 'id')
         )
 
     @classmethod
@@ -113,6 +118,7 @@ class DashboardService:
             student_data.append({
                 'id': student.id,
                 'nombre': student.nombre_completo or student.username,
+            'nombre_completo': student.nombre_completo or student.username,
                 'username': student.username,
                 'cursos': course_names,
                 'actividades_completadas': sum(row.estado in cls.COMPLETED_STATES for row in rows),
@@ -179,10 +185,48 @@ class DashboardService:
             raise ResourceNotFoundException('Estudiante no encontrado.', code='ESTUDIANTE_NO_ENCONTRADO')
 
         course_ids = list(courses.values_list('id', flat=True))
-        enrollments = EstudianteCurso.objects.filter(
-            estudiante=student, curso_id__in=course_ids
-        ).select_related('curso').order_by('curso__nombre')
+        enrollments = list(
+            EstudianteCurso.objects.filter(
+                estudiante=student, curso_id__in=course_ids
+            ).select_related('curso').prefetch_related('curso__asignaturas').order_by('curso__nombre')
+        )
         rows = cls._assignment_rows(courses, Usuario.objects.filter(pk=student.pk))
+
+        # Materias reales obtenidas de la inscripción del estudiante a sus cursos dentro del alcance
+        enrolled_subjects = {}
+        for enrollment in enrollments:
+            for asignatura in enrollment.curso.asignaturas.all():
+                if asignatura.id not in enrolled_subjects:
+                    enrolled_subjects[asignatura.id] = {
+                        'id': asignatura.id,
+                        'nombre': asignatura.nombre,
+                        'calificaciones': [],
+                        'total_actividades': 0,
+                        'actividades_completadas': 0,
+                    }
+
+        # Asignar actividades y calificaciones a las materias inscritas correspondientes
+        for row in rows:
+            subject_id = row.actividad.asignatura_id
+            if subject_id and subject_id in enrolled_subjects:
+                subj = enrolled_subjects[subject_id]
+                subj['total_actividades'] += 1
+                if row.estado in cls.COMPLETED_STATES:
+                    subj['actividades_completadas'] += 1
+                    if row.calificacion is not None:
+                        subj['calificaciones'].append(row.calificacion)
+
+        materias = [
+            {
+                'id': data['id'],
+                'nombre': data['nombre'],
+                'promedio': cls._average(data['calificaciones']),
+                'total_actividades': data['total_actividades'],
+                'actividades_completadas': data['actividades_completadas'],
+            }
+            for data in sorted(enrolled_subjects.values(), key=lambda s: s['nombre'])
+        ]
+
         history = [{
             'id': row.id,
             'actividad': row.actividad.titulo,
@@ -198,5 +242,6 @@ class DashboardService:
             'username': student.username,
             'cursos': [enrollment.curso.nombre for enrollment in enrollments],
             'promedio': cls._average(graded),
+            'materias': materias,
             'historial': history,
         }
